@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Siber Afet Radarı v18.7</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        :root {
+            --bg-main: #030712;
+            --bg-panel: #0b0f19;
+            --neon-color: #00ecff;
+            --neon-glow: 0 0 10px rgba(0, 236, 255, 0.6);
+            --border-style: 2px solid #00ecff;
+            --text-color: #00ecff;
+            --text-muted: #38bdf8;
+            --text-eq-title: #ffffff;
+            --popup-bg: #0b0f19;
+            --popup-text: #00ecff;
+            --weather-text: #00ecff;
+            --app-height: 100vh;
+        }
+        .light-mode {
+            --bg-main: #f0f2f5;
+            --bg-panel: #ffffff;
+            --neon-color: #1d4ed8;
+            --neon-glow: none;
+            --border-style: 2px solid #cbd5e1;
+            --text-color: #1e293b;
+            --text-muted: #475569;
+            --text-eq-title: #0f172a;
+            --popup-bg: #ffffff;
+            --popup-text: #1e293b;
+            --weather-text: #0f172a;
+        }
+        html, body {
+            margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+            background-color: var(--bg-main); color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        body { height: var(--app-height); display: flex; flex-direction: column; }
+        .top-nav {
+            background-color: var(--bg-panel); border-bottom: var(--border-style);
+            box-shadow: var(--neon-glow); padding: 8px 15px; display: flex;
+            justify-content: space-between; align-items: center; z-index: 1000; flex-shrink: 0;
+        }
+        .brand-title { font-weight: bold; font-family: monospace; font-size: 13px; letter-spacing: 1px; text-shadow: var(--neon-glow); }
+        .nav-buttons { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; }
+        .toggle-btn {
+            background: transparent; color: var(--text-color); border: var(--border-style);
+            padding: 5px 7px; border-radius: 4px; cursor: pointer; font-weight: bold;
+            font-size: 10px; font-family: monospace; box-shadow: var(--neon-glow);
+        }
+        .toggle-btn.active-risik { background: #ff4500; color: #fff; border-color: #ff4500; box-shadow: 0 0 10px #ff4500; }
+        .toggle-btn.active-mgm { background: #eab308; color: #000; border-color: #eab308; box-shadow: 0 0 10px #eab308; }
+        .toggle-btn.active-cam { background: #00ecff; color: #000; border-color: #00ecff; box-shadow: 0 0 10px #00ecff; }
+        .toggle-btn.active-lightning { background: #facc15; color: #000; border-color: #facc15; box-shadow: 0 0 10px #facc15; }
+        .map-container { position: relative; height: 38vh; width: 100%; flex-shrink: 0; }
+        #map { height: 100%; width: 100%; background-color: #030712 !important; }
+        #mgm-banner, #cam-list-banner {
+            position: absolute; top: 10px; left: 10px; right: 10px; z-index: 999;
+            background: rgba(11, 15, 25, 0.95); border: 2px solid #eab308;
+            border-radius: 6px; padding: 8px 12px; display: none; font-family: monospace; color: #fff;
+        }
+        #cam-list-banner { border: 2px solid var(--neon-color); }
+        .mgm-title, .cam-list-title {
+            font-weight: bold; font-size: 11px; display: flex; justify-content: space-between;
+            align-items: center; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 4px; margin-bottom: 6px;
+        }
+        .mgm-list, .cam-dropdown-list { font-size: 10px; max-height: 130px; overflow-y: auto; line-height: 1.4; }
+        .mgm-day, .cam-dropdown-item {
+            margin-bottom: 4px; background: rgba(255,255,255,0.05); padding: 5px 8px;
+            border-radius: 3px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .cam-dropdown-item { cursor: pointer; border: 1px solid rgba(0, 236, 255, 0.2); transition: all 0.2s; }
+        .cam-dropdown-item:hover { background: rgba(0, 236, 255, 0.15); }
+        .weather-panel {
+            background-color: var(--bg-panel); padding: 8px 10px; display: flex;
+            overflow-x: auto; white-space: nowrap; gap: 15px; flex-shrink: 0; z-index: 10;
+            scrollbar-width: none;
+        }
+        .weather-panel::-webkit-scrollbar { display: none; }
+        .weather-item { font-size: 11px; font-weight: bold; color: var(--weather-text); font-family: monospace; display: inline-block; min-width: 140px; text-align: center; }
+        .weather-item b { color: var(--text-eq-title); display: block; font-size: 11px; margin-top: 2px; }
+        .bottom-area { flex: 1; position: relative; background-color: var(--bg-main); overflow: hidden; display: flex; flex-direction: column; border-top: var(--border-style); }
+        #list { position: absolute; inset: 0; overflow-y: auto; padding: 15px; z-index: 1; }
+        #cam-container { position: absolute; inset: 0; background: #000; z-index: 9999; display: none; flex-direction: column; }
+        .cam-header { background: var(--bg-panel); padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; }
+        .cam-close-btn { background: #f85149; color: #fff; border: none; padding: 4px 10px; border-radius: 3px; cursor: pointer; font-weight: bold; font-size: 11px; }
+        .iframe-wrapper { width: 100%; flex: 1; display: flex; flex-direction: column; background: #000; }
+        #cam-frame { width: 100%; flex: 1; border: none; display: block; }
+        .eq-item { background-color: var(--bg-panel); border: var(--border-style); border-left: 5px solid var(--neon-color); border-radius: 4px; padding: 12px; margin-bottom: 10px; font-size: 13px; }
+        .mag-badge { display: inline-block; padding: 2px 7px; border-radius: 3px; font-weight: bold; color: #000; }
+        .time-text { color: var(--text-muted); font-weight: bold; font-family: monospace; }
+        @keyframes heatPulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 69, 0, 0.8); transform: scale(0.85); }
+            70% { box-shadow: 0 0 0 8px rgba(255, 69, 0, 0); transform: scale(1.0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 69, 0, 0); transform: scale(0.85); }
+        }
+        .radar-heat-core {
+            width: 22px; height: 22px; background: rgba(255, 69, 0, 0.6); border: 1.5px solid #ff4500;
+            border-radius: 50%; text-align: center; line-height: 19px; font-size: 11px; animation: heatPulse 1.4s infinite ease-in-out;
+        }
+        @keyframes coldPulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 150, 255, 0.8); transform: scale(0.85); }
+            70% { box-shadow: 0 0 0 8px rgba(0, 150, 255, 0); transform: scale(1.0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 150, 255, 0); transform: scale(0.85); }
+        }
+        .radar-cold-core {
+            width: 22px; height: 22px; background: rgba(0, 150, 255, 0.6); border: 1.5px solid #00aaff;
+            border-radius: 50%; text-align: center; line-height: 19px; font-size: 11px; animation: coldPulse 1.4s infinite ease-in-out;
+        }
+        .city-label-tooltip { background: #0b0f19 !important; border: 1px solid #00ecff !important; color: #ffffff !important; font-family: monospace !important; font-size: 10px !important; padding: 3px 6px !important; border-radius: 4px !important; }
+    </style>
+</head>
+<body>
+
+    <div class="top-nav">
+        <div style="display:flex; flex-direction:column; align-items:flex-start; gap:2px;"><div class="brand-title" style="margin:0;">📡 SİBER RADAR</div><a href="https://instagram.com/totik.01" target="_blank" style="text-decoration:none; color:#E1306C; font-weight:bold; font-size:13px; margin-left:3px;"><span style="display:inline-block; width:16px; height:16px; border-radius:5px; background:linear-gradient(45deg,#feda75,#d62976,#962fbf,#4f5bd5); color:white; text-align:center; line-height:16px; font-size:11px;">◎</span> @totik.01</a></div>
+        <div class="nav-buttons">
+            <button class="toggle-btn" id="camListBtn" onclick="togglePanel('cam')">🎥 KAMERALAR</button>
+            <button class="toggle-btn" id="riskBtn" onclick="riskGoster()">📊 RİSK</button>
+            <button class="toggle-btn" id="yildirimBtn" onclick="toggleRadarLayer('yildirim')">⚡ YILDIRIM</button>
+            <button class="toggle-btn" id="mgmBtn" onclick="togglePanel('mgm')">📅 5 GÜN</button>
+            <button class="toggle-btn" id="meteoBtn" onclick="toggleRadarLayer('meteo')">☔ YAĞIŞ</button>
+            <button class="toggle-btn" id="liveRainBtn" onclick="canliYagisKontrol()">🌧️ CANLI YAĞIŞ</button>
+            <button class="toggle-btn" id="modeBtn" onclick="toggleMod()">KLASİK</button>
+        </div>
+    </div>
+
+    <div class="map-container">
+        <div id="mgm-banner">
+            <div class="mgm-title" style="color: #eab308;">
+                <span>📡 CANLI 5 GÜNLÜK HAVA TAHMİNİ (ADANA)</span>
+                <span style="cursor:pointer; color:#ff4500;" onclick="togglePanel('mgm')">[X]</span>
+            </div>
+            <div id="mgmAlertArea"></div>
+            <div class="mgm-list" id="mgmForecastContent"><div style="text-align:center; padding:10px;">Veriler yükleniyor...</div></div>
+        </div>
+        <div id="cam-list-banner">
+            <div class="cam-list-title" style="color: var(--neon-color);">
+                <span>🎥 CANLI KAMERA VE İSTASYON LİSTESİ</span>
+                <span style="cursor:pointer; color:#ff4500;" onclick="togglePanel('cam')">[X]</span>
+            </div>
+            <div class="cam-dropdown-list" id="camDropdownContent"></div>
+        </div>
+        <div id="map"></div>
+    </div>
+
+    <div class="weather-panel">
+        <div class="weather-item">🌤️ İSTANBUL<b id="w-ist">--</b></div>
+        <div class="weather-item">🏛️ ANKARA<b id="w-ank">--</b></div>
+        <div class="weather-item">🌊 İZMİR<b id="w-izm">--</b></div>
+        <div class="weather-item">☀️ ADANA<b id="w-adn">--</b></div>
+        <div class="weather-item">🌴 MERSİN<b id="w-mer">--</b></div>
+        <div class="weather-item">🔥 ANTALYA<b id="w-ant">--</b></div>
+        <div class="weather-item">🏜️ DİYARBAKIR<b id="w-diy">--</b></div>
+        <div class="weather-item">🌲 TRABZON<b id="w-tra">--</b></div>
+        <div class="weather-item">❄️ ERZURUM<b id="w-erz">--</b></div>
+    </div>
+
+    <div class="bottom-area">
+        <div id="list"><div style="text-align: center; padding: 10px; font-family:monospace;">Radar verileri işleniyor...</div></div>
+        <div id="cam-container">
+            <div class="cam-header">
+                <span id="cam-title" style="font-family:monospace; font-size:12px; font-weight:bold;">Canlı Yayın</span>
+                <button class="cam-close-btn" onclick="kameraKapat()">KAPAT X</button>
+            </div>
+            <div class="iframe-wrapper">
+                <iframe id="cam-frame" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <div id="miniRisk" style="position:fixed; top:80px; right:10px; z-index:9999; width:230px; background:#080d18; border:1px solid #00e5ff; border-radius:10px; padding:10px; color:white; font-size:12px; display:none; justify-content:space-around;">
+        <span style="color:#4285f4;text-align:center">🔵 <span id="riskLow">0%</span><br><small>Düşük Risk</small></span>
+        <span style="color:#22c55e;text-align:center">🟢 <span id="riskMid">0%</span><br><small>Orta Risk</small></span>
+        <span style="color:#ef4444;text-align:center">🔴 <span id="riskHigh">0%</span><br><small>Yüksek Risk</small></span>
+    </div>
+
+    <script>
+        function setAppHeight() {
+            document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+        }
+        window.addEventListener('resize', setAppHeight);
+        setAppHeight();
+
+        var map = L.map('map', { zoomControl: false, attributionControl: false }).setView([38.9, 35.5], 6);
+        var siberKatman = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 18, subdomains: 'abcd' });
+        var klasikKatman = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 });
+        siberKatman.addTo(map);
+
+        function toggleMod() {
+            var body = document.body;
+            var btn = document.getElementById('modeBtn');
+            if (body.classList.contains('light-mode')) {
+                body.classList.remove('light-mode');
+                btn.innerText = "KLASİK";
+                map.removeLayer(klasikKatman);
+                siberKatman.addTo(map);
+            } else {
+                body.classList.add('light-mode');
+                btn.innerText = "SİBER";
+                map.removeLayer(siberKatman);
+                klasikKatman.addTo(map);
+            }
+            setTimeout(() => map.invalidateSize({ pan: false }), 50);
+        }
+
+        let aktifPanel = null;
+        function togglePanel(type) {
+            let mgmBanner = document.getElementById('mgm-banner');
+            let camBanner = document.getElementById('cam-list-banner');
+            let mgmBtn = document.getElementById('mgmBtn');
+            let camBtn = document.getElementById('camListBtn');
+
+            if (aktifPanel === type) {
+                mgmBanner.style.display = 'none';
+                camBanner.style.display = 'none';
+                mgmBtn.classList.remove('active-mgm');
+                camBtn.classList.remove('active-cam');
+                aktifPanel = null;
+            } else {
+                mgmBanner.style.display = type === 'mgm' ? 'block' : 'none';
+                camBanner.style.display = type === 'cam' ? 'block' : 'none';
+                mgmBtn.classList.toggle('active-mgm', type === 'mgm');
+                camBtn.classList.toggle('active-cam', type === 'cam');
+                aktifPanel = type;
+
+                if (type === 'mgm') canliTahminGetir();
+                if (type === 'cam') kameraListesiniDoldur();
+            }
+        }
+
+        var kameralarVerisi = {{ kameralar | tojson }};
+        function kameraListesiniDoldur() {
+            var container = document.getElementById('camDropdownContent');
+            if (container.children.length > 0) return;
+            container.innerHTML = '';
+            kameralarVerisi.forEach(function(k) {
+                var [isim, lat, lng, link, type] = k;
+                var ikon = type === 'radar' ? "📡" : (type === 'yt' ? "▶️" : "📷");
+                if (type === 'radar') {
+                    container.innerHTML += `<div class="cam-dropdown-item" onclick="alert('Bu bir sismik istasyon verisidir, istasyon aktiftir.')"><span>${ikon} <b>${isim}</b></span><span style="color:#38bdf8;">[SİSMİK]</span></div>`;
+                } else {
+                    container.innerHTML += `<div class="cam-dropdown-item" onclick="canlıYayınAc('${link}', '${isim}'); togglePanel('cam');"><span>${ikon} <b>${isim}</b></span><span style="color:var(--neon-color);">İzle ▶</span></div>`;
+                }
+            });
+        }
+
+        function canliTahminGetir() {
+            fetch('/api/forecast5')
+                .then(res => res.json())
+                .then(data => {
+                    var container = document.getElementById('mgmForecastContent');
+                    container.innerHTML = '';
+                    if (data.tahminler.length === 0) {
+                        container.innerHTML = '<div style="color:#ff4500;">Tahmin verisi alınamadı.</div>';
+                        return;
+                    }
+                    data.tahminler.forEach(item => {
+                        container.innerHTML += `<div class="mgm-day"><span>${item.ikon} <b>${item.tarih}:</b> ${item.durum}</span><span style="color:#38bdf8; font-weight:bold;">${item.min}°C / ${item.max}°C</span></div>`;
+                    });
+                }).catch(() => {
+                    document.getElementById('mgmForecastContent').innerHTML = '<div style="color:#ff4500;">Bağlantı hatası.</div>';
+                });
+        }
+
+        let aktifKatmanlar = { meteo: { tile: null, aktif: false }, yildirim: { tile: null, aktif: false } };
+        function toggleRadarLayer(tip) {
+            let btn = document.getElementById(tip === 'meteo' ? 'meteoBtn' : 'yildirimBtn');
+            let katmanBilgi = aktifKatmanlar[tip];
+
+            if (katmanBilgi.aktif) {
+                if (katmanBilgi.tile) map.removeLayer(katmanBilgi.tile);
+                btn.classList.remove(tip === 'meteo' ? 'active-risik' : 'active-lightning');
+                btn.innerText = tip === 'meteo' ? '☔ YAĞIŞ' : '⚡ YILDIRIM';
+                katmanBilgi.aktif = false;
+            } else {
+                btn.innerText = "YÜKLENİYOR...";
+                fetch('https://api.rainviewer.com/public/weather-maps.json')
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data?.radar?.past?.length > 0) {
+                            let path = data.radar.past[data.radar.past.length - 1].path;
+                            let zIndex = tip === 'meteo' ? 100 : 101;
+                            let colorCode = tip === 'meteo' ? '2/1_1.png' : '3/1_0.png';
+                            let url = `https://tilecache.rainviewer.com${path}/256/{z}/{x}/{y}/${colorCode}`;
+
+                            if (katmanBilgi.tile) map.removeLayer(katmanBilgi.tile);
+                            katmanBilgi.tile = L.tileLayer(url, { opacity: tip === 'meteo' ? 0.65 : 0.85, zIndex: zIndex });
+                            katmanBilgi.tile.addTo(map);
+
+                            btn.classList.add(tip === 'meteo' ? 'active-risik' : 'active-lightning');
+                            btn.innerText = (tip === 'meteo' ? '☔ YAĞIŞ' : '⚡ YILDIRIM') + ' (AÇIK)';
+                            katmanBilgi.aktif = true;
+                        }
+                    })
+                    .catch(() => {
+                        btn.innerText = "HATA";
+                        setTimeout(() => { btn.innerText = tip === 'meteo' ? '☔ YAĞIŞ' : '⚡ YILDIRIM'; }, 2000);
+                    });
+            }
+        }
+
+        var havaDurumuKatmani = L.layerGroup().addTo(map);
+        function canlıYayınAc(url, isim) {
+            document.getElementById('cam-title').innerText = "🎥 " + isim;
+            document.getElementById('cam-frame').src = url;
+            document.getElementById('cam-container').style.display = 'flex';
+        }
+        function kameraKapat() {
+            document.getElementById('cam-container').style.display = 'none';
+            document.getElementById('cam-frame').src = '';
+        }
+
+        function havaDurumuArayuzunuGuncelle() {
+            fetch('/api/weather')
+                .then(res => res.json())
+                .then(data => {
+                    havaDurumuKatmani.clearLayers();
+                    data.forEach(sehir => {
+                        if (sehir.panel) {
+                            let panelEl = document.getElementById(sehir.panel);
+                            if (panelEl) {
+                                panelEl.innerHTML = `${sehir.anlik}°C <span style="font-size:9px;color:#aaa;">🤒${sehir.hissedilen}°C</span> <span style="font-size:9px;color:#38bdf8;">💧${sehir.nem}%</span>`;
+                                panelEl.parentElement.style.color = sehir.alarm ? (sehir.alarm === 'sicak' ? '#ff4500' : '#00aaff') : 'var(--weather-text)';
+                            }
+                        }
+                        if (sehir.alarm === 'sicak') {
+                            let heatIcon = L.divIcon({ html: '<div class="radar-heat-core">🔥</div>', className: '', iconSize: [22, 22], iconAnchor: [11, 11] });
+                            let marker = L.marker([sehir.lat, sehir.lng], { icon: heatIcon }).addTo(havaDurumuKatmani);
+                            marker.bindTooltip(sehir.isim, { direction: 'top', className: 'city-label-tooltip' });
+                            marker.bindPopup(`<div style="font-family:monospace; text-align:center;"><b style="color:#ff4500;">🚨 KRİTİK SICAKLIK ALARMI!</b><br>📍 ${sehir.isim}<br>Sıcaklık: ${sehir.anlik}°C | Hissedilen: ${sehir.hissedilen}°C</div>`);
+                        } else if (sehir.alarm === 'soguk') {
+                            let coldIcon = L.divIcon({ html: '<div class="radar-cold-core">❄️</div>', className: '', iconSize: [22, 22], iconAnchor: [11, 11] });
+                            let marker = L.marker([sehir.lat, sehir.lng], { icon: coldIcon }).addTo(havaDurumuKatmani);
+                            marker.bindTooltip(sehir.isim, { direction: 'top', className: 'city-label-tooltip' });
+                            marker.bindPopup(`<div style="font-family:monospace; text-align:center;"><b style="color:#00aaff;">❄️ AŞIRI SOĞUK / DON ALARMI!</b><br>📍 ${sehir.isim}<br>Sıcaklık: ${sehir.anlik}°C | Hissedilen: ${sehir.hissedilen}°C</div>`);
+                        }
+                    });
+                }).catch(() => {});
+        }
+        havaDurumuArayuzunuGuncelle();
+        setInterval(havaDurumuArayuzunuGuncelle, 60000);
+
+        var depremKatmani = L.layerGroup().addTo(map);
+        function depremleriYenile() {
+            fetch('/api')
+                .then(res => res.json())
+                .then(data => {
+                    let listDiv = document.getElementById('list');
+                    if (!data || data.length === 0) return;
+                    listDiv.innerHTML = '';
+                    depremKatmani.clearLayers();
+                    let count = 0;
+
+                    data.forEach(d => {
+                        if (d.mag >= 3.0) {
+                            count++;
+                            let renk = d.mag >= 4.0 ? '#f85149' : '#fb923c';
+                            L.circleMarker([d.lat, d.lng], { radius: Math.max(d.mag * 1.8, 3), color: '#fff', fillColor: renk, fillOpacity: 0.85, weight: 1.2 }).addTo(depremKatmani);
+                            listDiv.innerHTML += `<div class="eq-item">🕒 <span class="time-text">${d.zaman}</span> 📍 <b style="color:var(--text-eq-title);">${d.yer}</b><br>💥 Şiddet: <span class="mag-badge" style="background-color:${renk};">${d.mag}</span></div>`;
+                        }
+                    });
+
+                    if (count === 0) listDiv.innerHTML = `<div style="text-align: center; padding: 20px; font-family:monospace;">Son 3.0+ deprem yok. Radar temiz.</div>`;
+                }).catch(() => {});
+        }
+        depremleriYenile();
+        setInterval(depremleriYenile, 60000);
+
+        function riskGoster() {
+            let r = document.getElementById("miniRisk");
+            r.style.display = (r.style.display === "none" || r.style.display === "") ? "flex" : "none";
+            if(r.style.display === "flex") miniRiskGuncelle();
+        }
+        function miniRiskGuncelle() {
+            fetch('/api/risk').then(r => r.json()).then(d => {
+                document.getElementById("riskLow").innerHTML = d.dusuk + "%";
+                document.getElementById("riskMid").innerHTML = d.orta + "%";
+                document.getElementById("riskHigh").innerHTML = d.yuksek + "%";
+            }).catch(() => {});
+        }
+        miniRiskGuncelle();
+        setInterval(miniRiskGuncelle, 60000);
+    </script>
+
+    <script>
+        async function canliYagisKontrol(){
+            let eskiBox = document.getElementById("yagisPopup");
+            if(eskiBox) eskiBox.remove();
+
+            let btn = document.getElementById("liveRainBtn"); if(btn) btn.innerHTML="⏳ RADAR";
+            let box = document.createElement("div");
+            box.id = "yagisPopup";
+            box.style = "position:fixed;top:90px;left:50%;transform:translateX(-50%);background:white;color:#111;padding:18px;border-radius:15px;z-index:99999;box-shadow:0 5px 20px #0008;max-width:420px;white-space:nowrap;";
+            box.innerHTML = "🌧️ <b>CANLI YAĞIŞ</b><br><br>🔎 Türkiye geneli radar kontrol ediliyor...";
+            document.body.appendChild(box);
+            try {
+                let r = await fetch("/api/rain-check");
+                let d = await r.json();
+                if(d.yerler && d.yerler.length){
+                    let liste = d.yerler.map(x => " 📍 "+x.il+" - "+x.ilce+" <b>"+x.durum+"</b>").join("<br>");
+                    box.innerHTML = "🌧️ <b>Yağış tespit edilen bölgeler:</b><br><br>"+ liste+"<br><br>🛰️ RainViewer";
+                } else {
+                    box.innerHTML = "☀️ Aktif yağış tespit edilmedi.";
+                }
+            } catch(e) {
+                box.innerHTML = "⚠️ Radar kontrol hatası";
+            }
+            setTimeout(() => box.remove(), 10000);
+            if(btn) btn.innerHTML = "🌧️ CANLI YAĞIŞ";
+        }
+    </script>
+</body>
+</html>
