@@ -521,7 +521,7 @@ function havaDalgasiKontrol(){
    if(d.durum==="uyari"){
       box.style.display="block";
       txt.innerHTML=d.riskler.map(
-        x=>x.sehir+" : "+x.mesaj+" ("+x.fark+"°C)"
+        x=>x.sehir+" : "+x.mesaj
       ).join("<br>");
    }
    else{
