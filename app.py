@@ -15,7 +15,7 @@ SEHIRLER = [
     {"isim": "İstanbul", "lat": 41.0082, "lng": 28.9784, "query": "Istanbul", "panel": "w-ist"},
     {"isim": "Ankara", "lat": 39.9334, "lng": 32.8597, "query": "Ankara", "panel": "w-ank"},
     {"isim": "İzmir", "lat": 38.4192, "lng": 27.1287, "query": "Izmir", "panel": "w-izm"},
-    {"isim": "Adana Yüreğir", "lat": 37.0250, "lng": 35.3710, "query": "Yuregir,Adana,TR", "panel": "w-adn"},
+    {"isim": "Adana Seyhan", "lat": 37.0000, "lng": 35.3213, "query": "Seyhan,Adana,TR", "panel": "w-adn"},
     {"isim": "Mersin", "lat": 36.8121, "lng": 34.6415, "query": "Mersin", "panel": "w-mer"},
     {"isim": "Antalya", "lat": 36.8841, "lng": 30.7056, "query": "Antalya", "panel": "w-ant"},
     {"isim": "Diyarbakır", "lat": 37.9144, "lng": 40.2306, "query": "Diyarbakir", "panel": "w-diy"},
