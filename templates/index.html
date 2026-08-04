@@ -66,10 +66,18 @@
         .map-container { position: relative; height: 38vh; width: 100%; flex-shrink: 0; }
         #map { height: 100%; width: 100%; background-color: #030712 !important; }
         #mgm-banner, #cam-list-banner {
-            position: absolute; top: 10px; left: 10px; right: 10px; z-index: 999;
-            background: rgba(11, 15, 25, 0.95); border: 2px solid #eab308;
-            border-radius: 6px; padding: 8px 12px; display: none; font-family: monospace; color: #fff;
-        }
+              position: relative;
+              width: calc(100% - 20px);
+              margin: 5px 10px;
+              z-index: 10;
+              background: rgba(11, 15, 25, 0.95);
+              border: 2px solid #eab308;
+              border-radius: 6px;
+              padding: 8px 12px;
+              display: none;
+              font-family: monospace;
+              color: #fff;
+          }
         #cam-list-banner { border: 2px solid var(--neon-color); }
         .mgm-title, .cam-list-title {
             font-weight: bold; font-size: 11px; display: flex; justify-content: space-between;
@@ -122,6 +130,26 @@
     </style>
 <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 <body>
+<div id="dalgaUyari"
+style="
+display:none;
+position:fixed;
+right:10px;
+bottom:70px;
+z-index:9999;
+background:#0b0f19;
+border:2px solid #ff4500;
+color:#ff4500;
+padding:10px;
+border-radius:8px;
+font-family:monospace;
+font-size:12px;
+box-shadow:0 0 15px #ff4500;">
+📡 HAVA DALGASI UYARISI
+<br>
+<span id="dalgaMetin"></span>
+</div>
+
 
     <div class="top-nav">
         <div style="display:flex; flex-direction:column; align-items:flex-start; gap:2px;"><div class="brand-title" style="margin:0;">SİBER RADAR</div><div id="onlineSayac" style="font-size:11px;color:#00ff88;font-family:monospace;animation:onlinePulse 1.5s infinite;">🟢 ONLINE: -</div><a href="https://instagram.com/totik.01" target="_blank" style="text-decoration:none; color:#E1306C; font-weight:bold; font-size:13px; margin-left:3px;"><span style="display:inline-block; width:16px; height:16px; border-radius:5px; background:linear-gradient(45deg,#feda75,#d62976,#962fbf,#4f5bd5); color:white; text-align:center; line-height:16px; font-size:11px;">◎</span> @totik.01</a></div>
@@ -137,8 +165,8 @@
         </div>
     </div>
 
-    <div class="map-container">
-        <div id="mgm-banner">
+    
+<div id="mgm-banner">
             <div class="mgm-title" style="color: #eab308;">
                 <span>📡 CANLI 5 GÜNLÜK HAVA TAHMİNİ (ADANA)</span>
                 <span style="cursor:pointer; color:#ff4500;" onclick="togglePanel('mgm')">[X]</span>
@@ -153,7 +181,10 @@
             </div>
             <div class="cam-dropdown-list" id="camDropdownContent"></div>
         </div>
-        <div id="map"></div>
+        <div class="map-container">
+        
+
+<div id="map"></div>
     </div>
 
     <div class="weather-panel">
@@ -467,6 +498,34 @@ fetch('/api/online')
 }
 onlineGuncelle();
 setInterval(onlineGuncelle,30000);
+</script>
+
+<script>
+function havaDalgasiKontrol(){
+ fetch('/api/turkiye_havadalgasi')
+ .then(r=>r.json())
+ .then(d=>{
+
+   let box=document.getElementById("dalgaUyari");
+   let txt=document.getElementById("dalgaMetin");
+
+   if(!box || !txt) return;
+
+   if(d.durum==="uyari"){
+      box.style.display="block";
+      txt.innerHTML=d.riskler.map(
+        x=>x.sehir+" : "+x.mesaj+" ("+x.fark+"°C)"
+      ).join("<br>");
+   }
+   else{
+      box.style.display="none";
+   }
+
+ });
+}
+
+havaDalgasiKontrol();
+setInterval(havaDalgasiKontrol,1800000);
 </script>
 </body>
 </html>

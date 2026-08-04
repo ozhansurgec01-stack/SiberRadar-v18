@@ -145,6 +145,141 @@ def weather():
 def risk():
     return jsonify({"dusuk": 70, "orta": 20, "yuksek": 10})
 
+
+
+@app.route('/api/havadalgasi')
+def havadalgasi():
+    try:
+        import requests
+
+        url=f"https://api.openweathermap.org/data/2.5/forecast?lat=37.025&lon=35.371&appid={API_KEY}&units=metric&lang=tr"
+        data=requests.get(url,timeout=10).json()
+
+        liste=data.get("list", [])
+
+        if not liste:
+            return jsonify({
+                "durum":"veri yok",
+                "mesaj":"Tahmin verisi alınamadı"
+            })
+
+        bugun=[]
+        gelecek=[]
+
+        for x in liste:
+            sic=round(x["main"]["temp"])
+            tarih=x["dt_txt"].split(" ")[0]
+
+            if tarih == liste[0]["dt_txt"].split(" ")[0]:
+                bugun.append(sic)
+            else:
+                gelecek.append(sic)
+
+        simdi=max(bugun) if bugun else 0
+        sonraki=max(gelecek) if gelecek else simdi
+
+        fark=sonraki-simdi
+
+        if fark >= 5:
+            return jsonify({
+                "alarm":"sicak",
+                "mesaj":"🔥 Sıcak hava dalgası yaklaşabilir",
+                "bugun":simdi,
+                "beklenen":sonraki,
+                "degisim":fark
+            })
+
+        if fark <= -5:
+            return jsonify({
+                "alarm":"soguk",
+                "mesaj":"❄️ Soğuk hava girişi olabilir",
+                "bugun":simdi,
+                "beklenen":sonraki,
+                "degisim":fark
+            })
+
+        return jsonify({
+            "alarm":"yok",
+            "mesaj":"🟢 Belirgin sıcak/soğuk hava dalgası görünmüyor",
+            "bugun":simdi,
+            "beklenen":sonraki,
+            "degisim":fark
+        })
+
+    except Exception as e:
+        return jsonify({
+            "alarm":"hata",
+            "mesaj":str(e)
+        })
+
+
+
+@app.route('/api/turkiye_havadalgasi')
+def turkiye_havadalgasi():
+    try:
+        riskler=[]
+
+        for sehir in SEHIRLER:
+            url=f"https://api.openweathermap.org/data/2.5/forecast?lat={sehir['lat']}&lon={sehir['lng']}&appid={API_KEY}&units=metric&lang=tr"
+
+            data=requests.get(url,timeout=8).json()
+            liste=data.get("list",[])
+
+            if not liste:
+                continue
+
+            gunler={}
+
+            for x in liste:
+                tarih=x["dt_txt"].split(" ")[0]
+                sic=round(x["main"]["temp"])
+
+                if tarih not in gunler:
+                    gunler[tarih]=[]
+                gunler[tarih].append(sic)
+
+            gunluk=[max(v) for v in gunler.values()]
+
+            if len(gunluk) < 2:
+                continue
+
+            fark=max(gunluk[1:])-gunluk[0]
+
+            if fark >= 5:
+                riskler.append({
+                    "sehir":sehir["isim"],
+                    "tip":"sicak",
+                    "fark":fark,
+                    "mesaj":"🔥 Sıcak hava dalgası riski"
+                })
+
+            elif fark <= -5:
+                riskler.append({
+                    "sehir":sehir["isim"],
+                    "tip":"soguk",
+                    "fark":fark,
+                    "mesaj":"❄️ Soğuk hava girişi riski"
+                })
+
+
+        if riskler:
+            return jsonify({
+                "durum":"uyari",
+                "riskler":riskler
+            })
+
+        return jsonify({
+            "durum":"normal",
+            "mesaj":"🟢 Türkiye genelinde belirgin hava dalgası görünmüyor",
+            "riskler":[]
+        })
+
+    except Exception as e:
+        return jsonify({
+            "durum":"hata",
+            "mesaj":str(e)
+        })
+
 @app.route('/api/forecast5')
 def forecast5():
     try:
@@ -254,4 +389,4 @@ def inject_kameralar():
     return dict(kameralar=kameralar_listesi)
 
 if __name__ == "__main__":
-    pass
+    app.run(host="0.0.0.0", port=8000)
