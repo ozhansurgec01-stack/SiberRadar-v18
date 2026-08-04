@@ -100,13 +100,13 @@ def weather():
     sonuclar = []
     for s in SEHIRLER:
         try:
-            url = f"http://api.openweathermap.org/data/2.5/weather?lat={s['lat']}&lon={s['lng']}&appid={API_KEY}&units=metric&lang=tr"
-            resp = requests.get(url, timeout=3)
+            url = f"https://api.open-meteo.com/v1/forecast?latitude={s['lat']}&longitude={s['lng']}&current=temperature_2m,relative_humidity_2m,apparent_temperature"
+            resp = requests.get(url, timeout=5)
             if resp.status_code == 200:
                 d = resp.json()
-                temp = round(d["main"]["temp"])
-                feels = round(d["main"]["feels_like"])
-                humidity = d["main"]["humidity"]
+                temp = round(d["current"]["temperature_2m"])
+                feels = round(d["current"]["apparent_temperature"])
+                humidity = d["current"]["relative_humidity_2m"]
                 
                 # Alarm mantığı (38 derece üstü sıcak, 0 altı soğuk/don)
                 alarm = None
