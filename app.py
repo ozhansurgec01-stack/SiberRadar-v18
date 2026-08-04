@@ -183,7 +183,7 @@ def havadalgasi():
         if sonraki >= 38:
             return jsonify({
                 "alarm":"sicak",
-                "mesaj":"🔥 Sıcak hava dalgası riski",
+                "mesaj":f"🔥 Sıcak hava dalgası riski ({sic}°C)",
 
                 "bugun":simdi,
                 "beklenen":sonraki,
@@ -251,14 +251,14 @@ def turkiye_havadalgasi():
                     "sehir":sehir["isim"],
                     "tip":"sicak",
                     "fark":fark,
-                    "mesaj":"🔥 Sıcak hava dalgası riski"
+                    "mesaj":f"🔥 Sıcak hava dalgası riski ({sic}°C)"
                 })
             elif fark >= 5:
                 riskler.append({
                     "sehir":sehir["isim"],
                     "tip":"artis",
                     "fark":fark,
-                    "mesaj":"📈 Ani sıcaklık artışı"
+                    "mesaj":f"📈 Ani sıcaklık artışı (+{fark}°C)"
                 })
 
             elif fark <= -5:
