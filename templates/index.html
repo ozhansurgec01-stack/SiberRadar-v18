@@ -7,6 +7,12 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
+@keyframes onlinePulse{
+0%{opacity:1;}
+50%{opacity:.45;}
+100%{opacity:1;}
+}
+
         :root {
 .leaflet-popup-content{max-width:220px!important;width:220px!important;font-size:13px!important}.leaflet-popup-content-wrapper{border-radius:12px!important}.leaflet-popup{margin-bottom:10px!important}
             --bg-main: #030712;
@@ -118,7 +124,7 @@
 <body>
 
     <div class="top-nav">
-        <div style="display:flex; flex-direction:column; align-items:flex-start; gap:2px;"><div class="brand-title" style="margin:0;">SİBER RADAR</div><div id="onlineSayac" style="font-size:11px;color:#00ff88;font-family:monospace;">🟢 ONLINE: -</div><a href="https://instagram.com/totik.01" target="_blank" style="text-decoration:none; color:#E1306C; font-weight:bold; font-size:13px; margin-left:3px;"><span style="display:inline-block; width:16px; height:16px; border-radius:5px; background:linear-gradient(45deg,#feda75,#d62976,#962fbf,#4f5bd5); color:white; text-align:center; line-height:16px; font-size:11px;">◎</span> @totik.01</a></div>
+        <div style="display:flex; flex-direction:column; align-items:flex-start; gap:2px;"><div class="brand-title" style="margin:0;">SİBER RADAR</div><div id="onlineSayac" style="font-size:11px;color:#00ff88;font-family:monospace;animation:onlinePulse 1.5s infinite;">🟢 ONLINE: -</div><a href="https://instagram.com/totik.01" target="_blank" style="text-decoration:none; color:#E1306C; font-weight:bold; font-size:13px; margin-left:3px;"><span style="display:inline-block; width:16px; height:16px; border-radius:5px; background:linear-gradient(45deg,#feda75,#d62976,#962fbf,#4f5bd5); color:white; text-align:center; line-height:16px; font-size:11px;">◎</span> @totik.01</a></div>
         <div class="nav-buttons">
             <button class="toggle-btn" id="camListBtn" onclick="togglePanel('cam')">🎥 KAMERALAR</button>
             <button class="toggle-btn" id="riskBtn" onclick="riskGoster()">📊 RİSK</button>
