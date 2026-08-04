@@ -108,7 +108,7 @@ def weather():
                 
                 # Alarm mantığı (38 derece üstü sıcak, 0 altı soğuk/don)
                 alarm = None
-                if temp >= 36 or feels >= 36:
+                if temp >= 38 or feels >= 38:
                     alarm = "sicak"
                 elif temp <= 0:
                     alarm = "soguk"
