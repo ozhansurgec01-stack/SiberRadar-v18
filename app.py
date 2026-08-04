@@ -41,7 +41,7 @@ def online():
 def home():
     import json
     try:
-        with open("/data/data/com.termux/files/home/kameralar.json","r",encoding="utf-8") as f:
+        with open("kameralar.json","r",encoding="utf-8") as f:
             kameralar=json.load(f)
     except:
         kameralar=[]
