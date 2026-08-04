@@ -572,15 +572,24 @@ function havaKutlesiGoster(){
    let metin=document.getElementById("kutleMetin");
 
    if(panel && metin){
-     panel.style.display="block";
+
      metin.innerHTML =
        d.mesaj+"<br>"+
        d.hareket+"<br>"+
        "💪 Güç: "+d.guc+"<br>"+
        "📌 Etki: "+d.etki;
+
+     panel.style.display="block";
+
+     if(panel.kapanTimer){
+       clearTimeout(panel.kapanTimer);
+     }
+
+     panel.kapanTimer=setTimeout(function(){
+       panel.style.display="none";
+     },20000);
    }
- })
- .catch(()=>{});
+ });
 }
 
 setInterval(havaKutlesiGoster,60000);
