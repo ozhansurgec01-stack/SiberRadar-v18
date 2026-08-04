@@ -392,7 +392,7 @@ box-shadow:0 0 15px #ff4500;">
                         if (sehir.panel) {
                             let panelEl = document.getElementById(sehir.panel);
                             if (panelEl) {
-                                panelEl.innerHTML = `${sehir.anlik}°C <span style="font-size:9px;color:#aaa;">🤒${sehir.hissedilen}°C</span> <span style="font-size:9px;color:#38bdf8;">💧${sehir.nem}%</span>`;
+                                panelEl.innerHTML = `🌡️ ${sehir.anlik}°C <span style="font-size:10px;color:#ffcc00;text-shadow:0 0 6px #ffcc00;">🔥 ${sehir.hissedilen}°C</span> <span style="font-size:9px;color:#38bdf8;">💧%${sehir.nem}</span>`;
                                 panelEl.parentElement.style.color = sehir.alarm ? (sehir.alarm === 'sicak' ? '#ff4500' : '#00aaff') : 'var(--weather-text)';
                             }
                         }
