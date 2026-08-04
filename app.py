@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 from datetime import datetime, timedelta
 import requests
 
 app = Flask(__name__)
-ziyaretciler = []
+ziyaretciler = {}
 
 API_KEY = "47c985532d16457337f109fb907d8a60"
 
@@ -26,8 +26,15 @@ def online():
     import time
     simdi = time.time()
     global ziyaretciler
-    ziyaretciler = [x for x in ziyaretciler if simdi-x < 300]
-    ziyaretciler.append(simdi)
+
+    ip = request.remote_addr
+    ziyaretciler[ip] = simdi
+
+    ziyaretciler = {
+        k:v for k,v in ziyaretciler.items()
+        if simdi-v < 300
+    }
+
     return jsonify({"online": len(ziyaretciler)})
 
 @app.route('/')
