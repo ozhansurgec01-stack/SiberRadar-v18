@@ -127,7 +127,45 @@
             border-radius: 50%; text-align: center; line-height: 19px; font-size: 11px; animation: coldPulse 1.4s infinite ease-in-out;
         }
         .city-label-tooltip { background: #0b0f19 !important; border: 1px solid #00ecff !important; color: #ffffff !important; font-family: monospace !important; font-size: 10px !important; padding: 3px 6px !important; border-radius: 4px !important; }
-    </style>
+    
+@keyframes dalgaPulse{
+0%{
+ box-shadow:0 0 5px #ff4500;
+ border-color:#ff4500;
+}
+50%{
+ box-shadow:0 0 30px #ff0000;
+ border-color:#ffff00;
+}
+100%{
+ box-shadow:0 0 5px #ff4500;
+ border-color:#ff4500;
+}
+}
+
+@media (max-width:600px){
+#dalgaUyari{
+ right:8px !important;
+ left:8px !important;
+ bottom:80px !important;
+ max-width:none !important;
+ width:auto !important;
+ max-height:240px;
+ overflow-y:auto;
+ font-size:11px !important;
+ padding:8px !important;
+}
+
+#kutlePanel{
+ right:8px !important;
+ left:8px !important;
+ bottom:80px !important;
+ max-width:none !important;
+ width:auto !important;
+ font-size:11px !important;
+}
+}
+</style>
 <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 <body>
 <div id="dalgaUyari"
@@ -507,10 +545,42 @@ let dalgaKapali=false;
 function dalgaGoster(){
  let box=document.getElementById("dalgaUyari");
  let txt=document.getElementById("dalgaMetin");
- if(box && txt && box.dataset.icerik){
-   box.style.display="block";
-   txt.innerHTML=box.dataset.icerik;
- }
+
+ if(!box || !txt) return;
+
+ fetch('/api/turkiye_havadalgasi')
+ .then(r=>r.json())
+ .then(d=>{
+
+   if(d.durum==="uyari"){
+
+     box.style.display="block";
+     box.style.animation="dalgaPulse 1.5s infinite";
+
+     txt.innerHTML=
+       "🔴 YÜKSEK HAVA DALGASI RİSKİ ("+d.riskler.length+" BÖLGE)<br><br>"+
+       d.riskler.map(x=>x.sehir+" : "+x.mesaj).join("<br>");
+
+     clearTimeout(box.kapanTimer);
+
+     box.kapanTimer=setTimeout(()=>{
+       box.style.display="none";
+     },10000);
+
+   }else{
+
+     box.style.display="block";
+     txt.innerHTML="🟢 Aktif hava dalgası uyarısı yok";
+
+     clearTimeout(box.kapanTimer);
+
+     box.kapanTimer=setTimeout(()=>{
+       box.style.display="none";
+     },10000);
+
+   }
+
+ });
 }
 
 function dalgaKapat(){
@@ -523,20 +593,43 @@ function havaDalgasiKontrol(){
  .then(r=>r.json())
  .then(d=>{
    let box=document.getElementById("dalgaUyari");
-   if(!box) return;
+   let txt=document.getElementById("dalgaMetin");
+
+   if(!box || !txt) return;
 
    if(d.durum==="uyari"){
-      box.dataset.icerik=d.riskler.map(
-        x=>x.sehir+" : "+x.mesaj
-      ).join("<br>");
+     let liste=d.riskler.sort((a,b)=>{
+       let sa=parseInt(a.mesaj.match(/\d+/)?.[0]||0);
+       let sb=parseInt(b.mesaj.match(/\d+/)?.[0]||0);
+       return sb-sa;
+     });
+
+     box.style.display="block";
+     box.style.animation="dalgaPulse 1.5s infinite";
+
+     txt.innerHTML=
+       "🔴 YÜKSEK HAVA DALGASI RİSKİ ("+liste.length+" BÖLGE)<br><br>"+
+       liste.map(x=>{
+          let renk=x.mesaj.includes("Sıcak") ? "#ff4500" : "#ffd700";
+          return "<span style='color:"+renk+";font-weight:bold'>"+
+          x.sehir+" : "+x.mesaj+
+          "</span>";
+       }).join("<br>");
+
+     clearTimeout(box.kapanTimer);
+
+     box.kapanTimer=setTimeout(()=>{
+       box.style.display="none";
+     },10000);
+
    }else{
-      box.dataset.icerik="";
+     box.style.display="none";
    }
  });
 }
 
 havaDalgasiKontrol();
-setInterval(havaDalgasiKontrol,300000);
+
 </script>
 
 <div id="kutlePanel"
