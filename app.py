@@ -192,7 +192,7 @@ def havadalgasi():
                 "degisim":fark
             })
 
-        if fark <= -5:
+        if fark <= -8 and sonraki <= 15:
             return jsonify({
                 "alarm":"soguk",
                 "mesaj":"❄️ Soğuk hava girişi olabilir",
@@ -248,7 +248,7 @@ def turkiye_havadalgasi():
 
             fark=max(gunluk[1:])-gunluk[0]
 
-            if gunluk[1] >= 38:
+            if gunluk[1] >= 38 and fark >= 3:
                 riskler.append({
                     "sehir":sehir["isim"],
                     "tip":"sicak",
@@ -263,7 +263,7 @@ def turkiye_havadalgasi():
                     "mesaj":f"📈 Ani sıcaklık artışı (+{fark}°C)"
                 })
 
-            elif fark <= -5:
+            elif fark <= -8 and gunluk[1] <= 15:
                 riskler.append({
                     "sehir":sehir["isim"],
                     "tip":"soguk",
