@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 import requests
 
 app = Flask(__name__)
+
+online_users={}
 ziyaretciler = {}
 
 API_KEY = "47c985532d16457337f109fb907d8a60"
@@ -398,3 +400,5 @@ def inject_kameralar():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)
+
+
