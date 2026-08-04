@@ -127,7 +127,6 @@
             <button class="toggle-btn" id="meteoBtn" onclick="toggleRadarLayer('meteo')">☔ YAĞIŞ</button>
             <button class="toggle-btn" id="liveRainBtn" onclick="canliYagisKontrol()">🌧️ CANLI YAĞIŞ</button>
 <button class="toggle-btn" id="stormBtn" onclick="firtinaGoster()">🌪️ FIRTINA</button>
-<button class="toggle-btn" onclick="polenGoster()">🌿 POLEN</button>
             <button class="toggle-btn" id="modeBtn" onclick="toggleMod()">KLASİK</button>
         </div>
     </div>
@@ -454,32 +453,6 @@ window.addEventListener('load', function(){
 </html>
 
 
-<script>
-fetch('/api/polen')
-.then(r=>r.json())
-.then(data=>{
-    console.log("Polen verisi:", data);
-    window.polenVerisi=data;
-});
-</script>
-
-<script>
-function polenGoster(){
-fetch('/api/polen')
-.then(r=>r.json())
-.then(d=>{
-let t="🌿 POLEN DURUMU\n\n";
-d.forEach(x=>{
-t+=x.isim+"\n";
-t+="🌳 Ağaç: "+x.agac+"\n";
-t+="🌾 Çayır: "+x.cayir+"\n";
-t+="🌼 Ot: "+x.ot+"\n";
-t+="🤧 Risk: "+x.alerji+"\n\n";
-});
-alert(t);
-});
-}
-</script>
 
 
 
