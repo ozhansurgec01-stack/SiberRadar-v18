@@ -101,7 +101,7 @@ def weather():
     for s in SEHIRLER:
         try:
             url = f"https://api.open-meteo.com/v1/forecast?latitude={s['lat']}&longitude={s['lng']}&current=temperature_2m,relative_humidity_2m,apparent_temperature"
-            resp = requests.get(url, timeout=5)
+            resp = requests.get(url, timeout=15)
             if resp.status_code == 200:
                 d = resp.json()
                 temp = round(d["current"]["temperature_2m"])
@@ -134,9 +134,9 @@ def weather():
             "isim": s["isim"],
             "lat": s["lat"],
             "lng": s["lng"],
-            "anlik": 33,
-            "hissedilen": 36,
-            "nem": 50,
+            "anlik": None,
+            "hissedilen": None,
+            "nem": None,
             "panel": s["panel"],
             "alarm": None
         })
