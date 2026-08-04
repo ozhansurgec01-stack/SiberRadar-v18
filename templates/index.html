@@ -501,6 +501,13 @@ setInterval(onlineGuncelle,30000);
 </script>
 
 <script>
+let dalgaKapali=false;
+
+function dalgaKapat(){
+ dalgaKapali=true;
+ document.getElementById("dalgaUyari").style.display="none";
+}
+
 function havaDalgasiKontrol(){
  fetch('/api/turkiye_havadalgasi')
  .then(r=>r.json())
