@@ -434,26 +434,6 @@ box-shadow:0 0 15px #ff4500;">
                     havaDurumuKatmani.clearLayers();
                     data.forEach(sehir => {
 
-                          let kisaltma = {
-                              "İSTANBUL":"w-ist",
-                              "ANKARA":"w-ank",
-                              "İZMİR":"w-izm",
-                              "ADANA":"w-adn",
-                              "MERSİN":"w-mer",
-                              "ANTALYA":"w-ant",
-                              "DİYARBAKIR":"w-diy",
-                              "TRABZON":"w-tra",
-                              "ERZURUM":"w-erz"
-                          };
-
-                          let ad = sehir.isim.toUpperCase().trim();
-
-                          if(kisaltma[ad]){
-                              let el=document.getElementById(kisaltma[ad]);
-                              if(el){
-                                  el.innerHTML=`🌡️ ${sehir.anlik}°C 🔥 ${sehir.hissedilen}°C 💧%${sehir.nem}`;
-                              }
-                          }
 
                         if (sehir.panel) {
                             let panelEl = document.getElementById(sehir.panel);
