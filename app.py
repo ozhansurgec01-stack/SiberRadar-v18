@@ -354,6 +354,99 @@ def rain_check():
 def polen():
     return jsonify([{"isim": "Adana Merkez", "agac": "Orta", "cayir": "Yüksek", "ot": "Düşük", "alerji": "Orta Risk"}])
 
+
+@app.route('/api/havakutlesi')
+def havakutlesi():
+    try:
+        analiz=[]
+        for s in SEHIRLER:
+            try:
+                url=f"https://api.open-meteo.com/v1/forecast?latitude={s['lat']}&longitude={s['lng']}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,surface_pressure"
+                d=requests.get(url,timeout=8).json()
+
+                c=d.get("current",{})
+
+                analiz.append({
+                    "isim":s["isim"],
+                    "sicaklik":round(c.get("temperature_2m",0)),
+                    "nem":c.get("relative_humidity_2m",0),
+                    "ruzgar":round(c.get("wind_speed_10m",0)),
+                    "yon":c.get("wind_direction_10m",0),
+                    "basinc":round(c.get("surface_pressure",0))
+                })
+
+            except:
+                pass
+
+        if not analiz:
+            return jsonify({"durum":"veri yok"})
+
+        en_sicak=max(analiz,key=lambda x:x["sicaklik"])
+        en_soguk=min(analiz,key=lambda x:x["sicaklik"])
+
+        fark=en_sicak["sicaklik"]-en_soguk["sicaklik"]
+
+        tip="normal"
+
+        if fark >= 10:
+            if en_sicak["nem"] <= 30:
+                tip="kuru_sicak"
+                mesaj=f"🔥 Kuru sıcak hava kütlesi etkisi. Kaynak: {en_sicak['isim']} ({en_sicak['sicaklik']}°C, nem %{en_sicak['nem']})"
+            elif en_sicak["nem"] >= 60:
+                tip="nemli_sicak"
+                mesaj=f"🌡️ Sıcak ve nemli hava kütlesi etkisi. Kaynak: {en_sicak['isim']}"
+            else:
+                tip="hava_kutlesi"
+                mesaj=f"🌡️ Güçlü hava kütlesi farkı. Sıcak merkez: {en_sicak['isim']}"
+        else:
+            mesaj="🟢 Belirgin hava kütlesi hareketi yok"
+
+        yon= en_sicak["yon"]
+
+        if yon >= 315 or yon < 45:
+            kaynak="Kuzey"
+        elif yon < 135:
+            kaynak="Doğu"
+        elif yon < 225:
+            kaynak="Güney"
+        else:
+            kaynak="Batı"
+
+        if fark >= 15:
+            guc="Çok güçlü"
+        elif fark >= 10:
+            guc="Güçlü"
+        else:
+            guc="Zayıf"
+
+        hareket=f"➡️ {kaynak} kaynaklı hava hareketi"
+
+        if tip=="kuru_sicak":
+            etki="İç ve güney kesimlerde sıcaklık baskısı oluşturabilir"
+        elif tip=="nemli_sicak":
+            etki="Bunaltıcı sıcaklık ve yüksek nem etkisi oluşturabilir"
+        elif tip=="hava_kutlesi":
+            etki="Bölgesel hava değişimi takip edilmeli"
+        else:
+            etki="Belirgin hava kütlesi etkisi yok"
+
+        return jsonify({
+            "durum":"analiz",
+            "tip":tip,
+            "mesaj":mesaj,
+            "kaynak_yon":kaynak,
+            "hareket":hareket,
+            "etki":etki,
+            "guc":guc,
+            "sicak_merkez":en_sicak,
+            "soguk_merkez":en_soguk,
+            "fark":fark,
+            "veriler":analiz
+        })
+
+    except Exception as e:
+        return jsonify({"durum":"hata","mesaj":str(e)})
+
 @app.route('/api/storm')
 def storm():
     sonuc=[]

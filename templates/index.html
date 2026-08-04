@@ -161,6 +161,7 @@ box-shadow:0 0 15px #ff4500;">
             <button class="toggle-btn" id="meteoBtn" onclick="toggleRadarLayer('meteo')">☔ YAĞIŞ</button>
             <button class="toggle-btn" id="liveRainBtn" onclick="canliYagisKontrol()">🌧️ CANLI YAĞIŞ</button>
 <button class="toggle-btn" id="stormBtn" onclick="firtinaGoster()">🌪️ FIRTINA</button>
+<button class="toggle-btn" id="dalgaBtn" onclick="dalgaGoster()">📡 HAVA DALGASI</button>
             <button class="toggle-btn" id="modeBtn" onclick="toggleMod()">KLASİK</button>
         </div>
     </div>
@@ -503,6 +504,15 @@ setInterval(onlineGuncelle,30000);
 <script>
 let dalgaKapali=false;
 
+function dalgaGoster(){
+ let box=document.getElementById("dalgaUyari");
+ let txt=document.getElementById("dalgaMetin");
+ if(box && txt && box.dataset.icerik){
+   box.style.display="block";
+   txt.innerHTML=box.dataset.icerik;
+ }
+}
+
 function dalgaKapat(){
  dalgaKapali=true;
  document.getElementById("dalgaUyari").style.display="none";
@@ -512,28 +522,79 @@ function havaDalgasiKontrol(){
  fetch('/api/turkiye_havadalgasi')
  .then(r=>r.json())
  .then(d=>{
-
    let box=document.getElementById("dalgaUyari");
-   let txt=document.getElementById("dalgaMetin");
-
-   if(!box || !txt) return;
+   if(!box) return;
 
    if(d.durum==="uyari"){
-      box.style.display="block";
-      txt.innerHTML=d.riskler.map(
-        x=>x.sehir+" : "+x.mesaj.replace(/\((.*?)\)/,'<span style="color:#00ff88;text-shadow:0 0 8px #00ff88;">($1)</span>' )
+      box.dataset.icerik=d.riskler.map(
+        x=>x.sehir+" : "+x.mesaj
       ).join("<br>");
+   }else{
+      box.dataset.icerik="";
    }
-   else{
-      box.style.display="none";
-   }
-
  });
 }
 
 havaDalgasiKontrol();
 setInterval(havaDalgasiKontrol,300000);
 </script>
+
+<div id="kutlePanel"
+style="
+display:none;
+position:fixed;
+right:10px;
+bottom:10px;
+z-index:9998;
+background:#0b0f19;
+border:2px solid #00ffff;
+color:#00ffff;
+padding:10px;
+border-radius:8px;
+font-family:monospace;
+font-size:12px;
+max-width:280px;
+box-shadow:0 0 15px #00ffff;">
+🌍 AKTİF HAVA KÜTLESİ <span onclick="kutleKapat()" style="float:right;cursor:pointer;color:white;font-size:16px;">✖</span>
+<br>
+<span id="kutleMetin" style="color:#fff;"></span>
+</div>
+
+
+<script>
+function havaKutlesiGoster(){
+ fetch('/api/havakutlesi')
+ .then(r=>r.json())
+ .then(d=>{
+   if(!d || d.durum!=="analiz") return;
+
+   let panel=document.getElementById("kutlePanel");
+   let metin=document.getElementById("kutleMetin");
+
+   if(panel && metin){
+     panel.style.display="block";
+     metin.innerHTML =
+       d.mesaj+"<br>"+
+       d.hareket+"<br>"+
+       "💪 Güç: "+d.guc+"<br>"+
+       "📌 Etki: "+d.etki;
+   }
+ })
+ .catch(()=>{});
+}
+
+setInterval(havaKutlesiGoster,60000);
+havaKutlesiGoster();
+</script>
+
+
+<script>
+function kutleKapat(){
+ let p=document.getElementById("kutlePanel");
+ if(p){ p.style.display="none"; }
+}
+</script>
+
 </body>
 </html>
 
