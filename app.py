@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import requests
 
 app = Flask(__name__)
+ziyaretciler = []
 
 API_KEY = "47c985532d16457337f109fb907d8a60"
 
@@ -19,6 +20,15 @@ SEHIRLER = [
     {"isim": "Trabzon", "lat": 41.0015, "lng": 39.7178, "query": "Trabzon", "panel": "w-tra"},
     {"isim": "Erzurum", "lat": 39.9043, "lng": 41.2679, "query": "Erzurum", "panel": "w-erz"}
 ]
+
+@app.route("/api/online")
+def online():
+    import time
+    simdi = time.time()
+    global ziyaretciler
+    ziyaretciler = [x for x in ziyaretciler if simdi-x < 300]
+    ziyaretciler.append(simdi)
+    return jsonify({"online": len(ziyaretciler)})
 
 @app.route('/')
 def home():
