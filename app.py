@@ -235,7 +235,7 @@ def turkiye_havadalgasi():
 
             for x in liste:
                 tarih=x["dt_txt"].split(" ")[0]
-                sic=round(x["main"]["temp"])
+                sic=round(max(x["main"]["temp"], x["main"]["feels_like"]))
 
                 if tarih not in gunler:
                     gunler[tarih]=[]
