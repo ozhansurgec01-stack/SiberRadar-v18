@@ -39,6 +39,30 @@ color:#38bdf8;
 }
 
 </style>
+
+<style>
+.forecast-wrap{
+display:flex;
+overflow-x:auto;
+gap:10px;
+padding:10px;
+scrollbar-width:none;
+}
+
+.forecast-wrap::-webkit-scrollbar{
+display:none;
+}
+
+.forecast-card{
+flex:0 0 130px;
+background:linear-gradient(145deg,#102a4c,#07111f);
+border:2px solid #1e90ff;
+border-radius:14px;
+padding:15px;
+box-shadow:0 0 15px #1e90ff55;
+text-align:center;
+}
+</style>
 </head>
 <body style="font-family:Arial;background:#07111f;color:white;text-align:center">
 
@@ -81,7 +105,7 @@ fetch('/api/weather')
 
 
 <h2>📅 5 Günlük Hava Tahmini</h2>
-<div id="tahmin" style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;">
+<div id="tahmin" class="forecast-wrap">
 Yükleniyor...
 </div>
 
