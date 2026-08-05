@@ -169,6 +169,15 @@
  
 }
 
+
+
+@media (max-width:600px){
+#cam-container{
+    right:20px !important;
+    bottom:120px !important;
+}
+}
+
 </style>
 <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 <body>
@@ -432,7 +441,7 @@ box-shadow:0 0 15px #00ffff;">
             document.getElementById('cam-container').style.display = 'flex';
             let kp=document.getElementById('kutlePanel');
             if(kp) kp.style.display='none';
-document.getElementById('cam-container').scrollIntoView({behavior:'smooth', block:'center'});
+
         }
         function kameraKapat() {
             document.getElementById('cam-container').style.display = 'none';
