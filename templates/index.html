@@ -328,6 +328,14 @@ box-shadow:0 0 15px #00ffff;">
             } else {
                 mgmBanner.style.display = type === 'mgm' ? 'block' : 'none';
                 camBanner.style.display = type === 'cam' ? 'block' : 'none';
+                if(type === 'cam'){
+                    camBanner.style.position='fixed';
+                    camBanner.style.top='55px';
+                    camBanner.style.left='10px';
+                    camBanner.style.right='10px';
+                    camBanner.style.width='calc(100% - 20px)';
+                    camBanner.style.zIndex='9999';
+                }
                 mgmBtn.classList.toggle('active-mgm', type === 'mgm');
                 camBtn.classList.toggle('active-cam', type === 'cam');
                 aktifPanel = type;
