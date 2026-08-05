@@ -440,15 +440,17 @@ box-shadow:0 0 15px #00ffff;">
 
             document.getElementById('cam-title').innerText = "🎥 " + isim;
             document.getElementById('cam-frame').src = url;
-            document.getElementById('cam-container').style.display = 'flex';
-            document.body.style.overflow='hidden';
+            let cam=document.getElementById('cam-container');
+            let eskiScroll=window.scrollY;
+            cam.style.display='flex';
+            cam.style.position='fixed';
+            window.scrollTo(0,eskiScroll);
             let kp=document.getElementById('kutlePanel');
             if(kp) kp.style.display='none';
 
         }
         function kameraKapat() {
             document.getElementById('cam-container').style.display = 'none';
-            document.body.style.overflow='';
             let kp=document.getElementById('kutlePanel');
             if(kp) kp.style.display='block';
             document.getElementById('cam-frame').src = '';
