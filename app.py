@@ -391,13 +391,13 @@ def havakutlesi():
         if fark >= 10:
             if en_sicak["nem"] <= 30:
                 tip="kuru_sicak"
-                mesaj=f"🔥 Kuru sıcak hava kütlesi etkisi. Kaynak: {en_sicak['isim']} ({en_sicak['sicaklik']}°C, nem %{en_sicak['nem']})"
+                mesaj=f"🌡️ Sıcak merkez: {en_sicak['isim']} ({en_sicak['sicaklik']}°C, nem %{en_sicak['nem']})"
             elif en_sicak["nem"] >= 60:
                 tip="nemli_sicak"
                 mesaj=f"🌡️ Sıcak ve nemli hava kütlesi etkisi. Kaynak: {en_sicak['isim']}"
             else:
                 tip="hava_kutlesi"
-                mesaj=f"🌡️ Güçlü hava kütlesi farkı. Sıcak merkez: {en_sicak['isim']}"
+                mesaj=f"🌡️ Sıcak merkez: {en_sicak["isim"]} ({en_sicak["sicaklik"]}°C) | Soğuk merkez: {en_soguk["isim"]} ({en_soguk["sicaklik"]}°C) | Fark: {fark}°C"
         else:
             mesaj="🟢 Belirgin hava kütlesi hareketi yok"
 
@@ -412,14 +412,47 @@ def havakutlesi():
         else:
             kaynak="Batı"
 
+        ruzgar=en_sicak["ruzgar"]
+        basinc_fark=abs(en_sicak["basinc"]-en_soguk["basinc"])
+
+        puan=0
+
+        if fark >= 10:
+            puan += 2
         if fark >= 15:
+            puan += 1
+
+        if ruzgar >= 25:
+            puan += 2
+        elif ruzgar >= 15:
+            puan += 1
+
+        if basinc_fark >= 10:
+            puan += 2
+        elif basinc_fark >= 5:
+            puan += 1
+
+        if puan >= 5:
             guc="Çok güçlü"
-        elif fark >= 10:
+        elif puan >= 3:
             guc="Güçlü"
+        elif puan >= 1:
+            guc="Orta"
         else:
             guc="Zayıf"
 
-        hareket=f"➡️ {kaynak} kaynaklı hava hareketi"
+        hareket=f"🌬️ {kaynak} sektörlü rüzgar"
+
+        if kaynak=="Kuzey" and fark >= 8:
+            hava_kaynagi="🥶 Soğuk hava girişi<br>📍 Muhtemel kaynak: Balkanlar / kuzey bölgeler"
+        elif en_sicak["sicaklik"] >= 35 and en_sicak["nem"] <= 35:
+            hava_kaynagi="🔥 Sıcak hava baskısı<br>📍 Muhtemel kaynak: Güney Akdeniz / Kuzey Afrika etkisi olabilir"
+        elif kaynak=="Güney" and fark >= 8:
+            hava_kaynagi="🌡️ Ilık hava taşınımı<br>📍 Muhtemel kaynak: Akdeniz çevresi"
+        elif kaynak=="Batı" and fark >= 10:
+            hava_kaynagi="🌬️ Batı yönlü hava hareketi"
+        else:
+            hava_kaynagi="🌍 Belirgin hava girişi yok"
 
         if tip=="kuru_sicak":
             etki="İç ve güney kesimlerde sıcaklık baskısı oluşturabilir"
@@ -436,6 +469,7 @@ def havakutlesi():
             "mesaj":mesaj,
             "kaynak_yon":kaynak,
             "hareket":hareket,
+            "hava_kaynagi":hava_kaynagi,
             "etki":etki,
             "guc":guc,
             "sicak_merkez":en_sicak,

@@ -418,45 +418,17 @@ box-shadow:0 0 15px #00ffff;">
 
         var havaDurumuKatmani = L.layerGroup().addTo(map);
         function canlıYayınAc(url, isim) {
-        var isiLayer = null;
-
-        function isiHaritasiGuncelle(data){
-            let noktalar = data.map(sehir => {
-                let sicaklik = Number(sehir.hissedilen || sehir.anlik || 0);
-                let yogunluk = Math.max(0.05, Math.min(1,(sicaklik-5)/40));
-                return [sehir.lat, sehir.lng, yogunluk];
-            });
-
-            if(isiLayer){
-                map.removeLayer(isiLayer);
-            }
-
-            isiLayer = L.heatLayer(noktalar,{
-                radius:180,
-                blur:120,
-                maxZoom:8,
-                gradient:{
-                    0:"#0055ff",
-                    0.25:"#00ffff",
-                    0.45:"#00ff00",
-                    0.65:"#ffff00",
-                    0.8:"#ff8800",
-                    1:"#ff0000"
-                }
-            }).addTo(map); console.log("ISI AKTIF",noktalar);
-        }
-
             document.getElementById('cam-title').innerText = "🎥 " + isim;
             document.getElementById('cam-frame').src = url;
+
             let cam=document.getElementById('cam-container');
-            let eskiScroll=window.scrollY;
             cam.style.display='flex';
             cam.style.position='fixed';
-            window.scrollTo(0,eskiScroll);
+
             let kp=document.getElementById('kutlePanel');
             if(kp) kp.style.display='none';
-
         }
+
         function kameraKapat() {
             document.getElementById('cam-container').style.display = 'none';
             let kp=document.getElementById('kutlePanel');
@@ -608,6 +580,7 @@ function havaKutlesiGoster(){
 
      metin.innerHTML =
        d.mesaj+"<br>"+
+       (d.hava_kaynagi ? d.hava_kaynagi+"<br>" : "")+
        d.hareket+"<br>"+
        "💪 Güç: "+d.guc+"<br>"+
        "📌 Etki: "+d.etki;
@@ -654,6 +627,11 @@ function kutleKapat(){
 }
 </script>
 
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script>
+function hlsOynat(url){
+</script>
 </body>
 </html>
 
