@@ -443,10 +443,12 @@ def havakutlesi():
 
         hareket=f"🌬️ {kaynak} sektörlü rüzgar"
 
-        if kaynak=="Kuzey" and fark >= 8:
-            hava_kaynagi="🥶 Soğuk hava girişi<br>📍 Muhtemel kaynak: Balkanlar / kuzey bölgeler"
-        elif en_sicak["sicaklik"] >= 35 and en_sicak["nem"] <= 35:
+        if en_sicak["sicaklik"] >= 35 and en_sicak["nem"] <= 35:
             hava_kaynagi="🔥 Sıcak hava baskısı<br>📍 Muhtemel kaynak: Güney Akdeniz / Kuzey Afrika etkisi olabilir"
+        elif kaynak=="Kuzey" and fark >= 10 and en_soguk["sicaklik"] <= 15:
+            hava_kaynagi="🥶 Soğuk hava girişi<br>📍 Muhtemel kaynak: Balkanlar / kuzey bölgeler"
+        elif kaynak=="Kuzey" and fark >= 8:
+            hava_kaynagi="🌬️ Kuzey serin hava etkisi<br>📍 Daha serin hava akışı olabilir"
         elif kaynak=="Güney" and fark >= 8:
             hava_kaynagi="🌡️ Ilık hava taşınımı<br>📍 Muhtemel kaynak: Akdeniz çevresi"
         elif kaynak=="Batı" and fark >= 10:
