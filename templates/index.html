@@ -231,20 +231,26 @@ box-shadow:0 0 15px #ff4500;">
 <div id="map"></div>
     </div>
 
+
+
+
+
     <div class="weather-panel">
-        <div class="weather-item">🌤️ İSTANBUL<b id="w-ist">--</b></div>
-        <div class="weather-item">🏛️ ANKARA<b id="w-ank">--</b></div>
-        <div class="weather-item">🌊 İZMİR<b id="w-izm">--</b></div>
-        <div class="weather-item">☀️ ADANA<b id="w-adn">--</b></div>
-        <div class="weather-item">🌴 MERSİN<b id="w-mer">--</b></div>
-        <div class="weather-item">🔥 ANTALYA<b id="w-ant">--</b></div>
-        <div class="weather-item">🏜️ DİYARBAKIR<b id="w-diy">--</b></div>
-        <div class="weather-item">🌲 TRABZON<b id="w-tra">--</b></div>
-        <div class="weather-item">❄️ ERZURUM<b id="w-erz">--</b></div>
+        <div class="weather-item"><a href="/istanbul-hava-durumu" style="color:inherit;text-decoration:none;">🌤️ İSTANBUL<b id="w-ist">--</b></a></div>
+        <div class="weather-item"><a href="/ankara-hava-durumu" style="color:inherit;text-decoration:none;">🏛️ ANKARA<b id="w-ank">--</b></a></div>
+
+        <div class="weather-item"><a href="/izmir-hava-durumu" style="color:inherit;text-decoration:none;">🌊 İZMİR<b id="w-izm">--</b></a></div>
+        <div class="weather-item"><a href="/adana-hava-durumu" style="color:inherit;text-decoration:none;">☀️ ADANA<b id="w-adn">--</b></a></div>
+        <div class="weather-item"><a href="/mersin-hava-durumu" style="color:inherit;text-decoration:none;">🌴 MERSİN<b id="w-mer">--</b></a></div>
+        <div class="weather-item"><a href="/antalya-hava-durumu" style="color:inherit;text-decoration:none;">🔥 ANTALYA<b id="w-ant">--</b></a></div>
+        <div class="weather-item"><a href="/diyarbakir-hava-durumu" style="color:inherit;text-decoration:none;">🏜️ DİYARBAKIR<b id="w-diy">--</b></a></div>
+        <div class="weather-item"><a href="/trabzon-hava-durumu" style="color:inherit;text-decoration:none;">🌲 TRABZON<b id="w-tra">--</b></a></div>
+        <div class="weather-item"><a href="/erzurum-hava-durumu" style="color:inherit;text-decoration:none;">❄️ ERZURUM<b id="w-erz">--</b></a></div>
     </div>
 
     <div class="bottom-area">
-        <div id="list"><div style="text-align: center; padding: 10px; font-family:monospace;">Radar verileri işleniyor...</div></div>
+        <div id="list"><div style="text-align: center; padding: 10px; font-family:monospace;">Radar verileri işleniyor...</div>
+
         <div id="cam-container">
             <div class="cam-header">
                 <span id="cam-title" style="font-family:monospace; font-size:12px; font-weight:bold;">Canlı Yayın</span>
@@ -438,7 +444,7 @@ box-shadow:0 0 15px #ff4500;">
                         if (sehir.panel) {
                             let panelEl = document.getElementById(sehir.panel);
                             if (panelEl) {
-                                panelEl.innerHTML = `🌡️ ${sehir.anlik}°C <span style="font-size:10px;color:#ffd700;text-shadow:0 0 6px #ffd700;">🔥 ${sehir.hissedilen}°C</span> <span style="font-size:9px;color:#38bdf8;">💧%${sehir.nem}</span>`;
+                                panelEl.innerHTML = `🌡️ ${sehir.anlik ?? '--'}°C <span style="font-size:10px;color:#ffd700;text-shadow:0 0 6px #ffd700;">🔥 ${sehir.hissedilen ?? '--'}°C</span> <span style="font-size:9px;color:#38bdf8;">💧%${sehir.nem ?? '--'}</span>`;
                                 panelEl.parentElement.style.color = sehir.alarm ? (sehir.alarm === 'sicak' ? '#ff4500' : '#00aaff') : 'var(--weather-text)';
                             }
                         }

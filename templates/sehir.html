@@ -5,19 +5,66 @@
 <title>{{ sehir }} Hava Durumu ve Canlı Kameralar | SiberRadar</title>
 <meta name="description" content="{{ sehir }} hava durumu, sıcaklık, radar ve canlı kamera görüntüleri SiberRadar'da.">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+.card{
+background:linear-gradient(145deg,#0b2038,#07111f);
+border:2px solid #00ecff;
+border-radius:16px;
+padding:20px;
+margin:20px auto;
+max-width:380px;
+box-shadow:0 0 20px #00ecff66;
+}
+
+.forecast-card{
+display:inline-block;
+background:linear-gradient(145deg,#102a4c,#07111f);
+border:2px solid #1e90ff;
+border-radius:14px;
+padding:15px;
+margin:8px;
+min-width:130px;
+box-shadow:0 0 15px #1e90ff55;
+}
+
+.temp-max{
+color:#ff7b00;
+font-size:20px;
+font-weight:bold;
+}
+
+.temp-min{
+color:#38bdf8;
+}
+
+</style>
 </head>
 <body style="font-family:Arial;background:#07111f;color:white;text-align:center">
 
 <h1>🌍 {{ sehir }} Hava Durumu</h1>
 
-<p>SiberRadar ile {{ sehir }} hava durumu, canlı kameralar ve radar takibi.</p>
+<p>SiberRadar ile {{ sehir }} hava durumu takibi. 
+{{ sehir }} için güncel sıcaklık, hissedilen sıcaklık, nem bilgisi ve 5 günlük hava tahminlerini takip edin.</p>
+
+<div style="max-width:600px;margin:15px auto;color:#cbd5e1;font-size:14px;line-height:1.6;">
+{{ sehir }} hava durumu bilgileri güncel verilerle yenilenir. 
+Sıcaklık değişimleri, hava koşulları ve tahmin bilgileri SiberRadar üzerinden takip edilebilir.
+</div>
 
 <a href="/">← Ana Sayfa</a>
 
 <hr>
 
 <h2>🌡️ Güncel Durum</h2>
-<div id="hava">Yükleniyor...</div>
+<div id="hava" class="card" style="font-size:18px;">
+Yükleniyor...
+</div>
+
+<div style="background:#101b2d;border-radius:12px;padding:15px;margin:15px auto;max-width:350px;">
+<h3>📡 SiberRadar Takibi</h3>
+<p>Canlı radar, hava hareketleri ve şehir bazlı hava durumu takibi.</p>
+</div>
 
 <script>
 fetch('/api/weather')
@@ -30,6 +77,42 @@ fetch('/api/weather')
     }
 });
 </script>
+
+
+
+<h2>📅 5 Günlük Hava Tahmini</h2>
+<div id="tahmin" style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;">
+Yükleniyor...
+</div>
+
+<script>
+fetch('/api/forecast5')
+.then(r=>r.json())
+.then(d=>{
+ let html="";
+ d.tahminler.forEach(x=>{
+   html += `
+   <div class="forecast-card">
+   <b>${new Date(x.tarih).toLocaleDateString("tr-TR",{day:"2-digit",month:"long",year:"numeric"})}</b><br>
+   ${x.ikon} ${x.durum}<br>
+   🔽 ${x.min}°C<br>
+   🔼 ${x.max}°C
+   </div>`;
+ });
+ document.getElementById("tahmin").innerHTML=html;
+});
+</script>
+
+
+
+
+<div class="card">
+<h2>🛰️ Canlı Radar</h2>
+<p>Bulut hareketleri ve yağış takibi için canlı radar görüntüsünü açın.</p>
+<a href="/" style="display:inline-block;background:#00ecff;color:#07111f;padding:10px 20px;border-radius:12px;text-decoration:none;font-weight:bold;">
+RADARI GÖR
+</a>
+</div>
 
 </body>
 </html>
