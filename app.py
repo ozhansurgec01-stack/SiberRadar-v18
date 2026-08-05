@@ -491,7 +491,69 @@ def inject_kameralar():
     ]
     return dict(kameralar=kameralar_listesi)
 
+
+@app.route('/<sehir>-hava-durumu')
+def sehir_sayfasi(sehir):
+    isimler = {
+        "istanbul":"İstanbul",
+        "ankara":"Ankara",
+        "izmir":"İzmir",
+        "adana":"Adana Seyhan",
+        "mersin":"Mersin",
+        "antalya":"Antalya",
+        "diyarbakir":"Diyarbakır",
+        "trabzon":"Trabzon",
+        "erzurum":"Erzurum"
+    }
+
+    ad = isimler.get(sehir.lower())
+    if not ad:
+        return "Şehir bulunamadı", 404
+
+    return render_template("sehir.html", sehir=ad)
+
+
+
+
+@app.route('/sitemap.xml')
+def sitemap():
+    from flask import Response
+    base = request.host_url.rstrip('/')
+
+    sayfalar = [
+        "istanbul-hava-durumu",
+        "ankara-hava-durumu",
+        "izmir-hava-durumu",
+        "adana-hava-durumu",
+        "mersin-hava-durumu",
+        "antalya-hava-durumu",
+        "diyarbakir-hava-durumu",
+        "trabzon-hava-durumu",
+        "erzurum-hava-durumu"
+    ]
+
+    xml = '<?xml version="1.0" encoding="UTF-8"?>'
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+
+    for x in sayfalar:
+        xml += f"<url><loc>{base}/{x}</loc></url>"
+
+    xml += "</urlset>"
+
+    return Response(xml, mimetype="application/xml")
+
+
+
+
+@app.route('/robots.txt')
+def robots():
+    from flask import Response
+    text = f"User-agent: *\nAllow: /\nSitemap: {request.host_url.rstrip('/')}/sitemap.xml"
+    return Response(text, mimetype="text/plain")
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)
+
 
 

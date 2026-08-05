@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>{{ sehir }} Hava Durumu ve Canlı Kameralar | SiberRadar</title>
+<meta name="description" content="{{ sehir }} hava durumu, sıcaklık, radar ve canlı kamera görüntüleri SiberRadar'da.">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body style="font-family:Arial;background:#07111f;color:white;text-align:center">
+
+<h1>🌍 {{ sehir }} Hava Durumu</h1>
+
+<p>SiberRadar ile {{ sehir }} hava durumu, canlı kameralar ve radar takibi.</p>
+
+<a href="/">← Ana Sayfa</a>
+
+<hr>
+
+<h2>🌡️ Güncel Durum</h2>
+<div id="hava">Yükleniyor...</div>
+
+<script>
+fetch('/api/weather')
+.then(r=>r.json())
+.then(data=>{
+    let s=data.find(x=>x.isim.toUpperCase().includes("{{ sehir.upper() }}"));
+    if(s){
+        document.getElementById("hava").innerHTML =
+        "🌡️ "+s.anlik+"°C 🔥 Hissedilen "+s.hissedilen+"°C 💧%"+s.nem;
+    }
+});
+</script>
+
+</body>
+</html>
