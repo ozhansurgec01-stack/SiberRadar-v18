@@ -1,4 +1,8 @@
 from datetime import datetime, timedelta
+import time
+weather_cache = []
+weather_cache_time = 0
+
 from flask import Flask, render_template, jsonify, request
 from datetime import datetime, timedelta
 import requests
@@ -97,6 +101,12 @@ def api_status():
 
 @app.route('/api/weather')
 def weather():
+    global weather_cache, weather_cache_time
+
+    # 10 dakika cache kullan
+    if weather_cache and time.time() - weather_cache_time < 600:
+        return jsonify(weather_cache)
+
     sonuclar = []
     for s in SEHIRLER:
         try:
@@ -142,6 +152,9 @@ def weather():
             "alarm": None
         })
         
+    weather_cache = sonuclar
+    weather_cache_time = time.time()
+
     return jsonify(sonuclar)
 
 @app.route('/api/risk')
@@ -554,7 +567,11 @@ def sehir_sayfasi(sehir):
 
 @app.route('/sitemap.xml')
 def sitemap():
-    from flask import Response
+    import time
+weather_cache = []
+weather_cache_time = 0
+
+from flask import Response
     base = request.host_url.rstrip('/')
 
     sayfalar = [
@@ -584,7 +601,11 @@ def sitemap():
 
 @app.route('/robots.txt')
 def robots():
-    from flask import Response
+    import time
+weather_cache = []
+weather_cache_time = 0
+
+from flask import Response
     text = f"User-agent: *\nAllow: /\nSitemap: {request.host_url.rstrip('/')}/sitemap.xml"
     return Response(text, mimetype="text/plain")
 
