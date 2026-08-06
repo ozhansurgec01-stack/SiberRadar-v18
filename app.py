@@ -103,59 +103,62 @@ def api_status():
 def weather():
     global weather_cache, weather_cache_time
 
-    # 10 dakika cache kullan
+    # 10 dakika cache
     if weather_cache and time.time() - weather_cache_time < 600:
         return jsonify(weather_cache)
 
-    sonuclar = []
+    sonuclar=[]
+
     for s in SEHIRLER:
         try:
-            url = f"https://api.open-meteo.com/v1/forecast?latitude={s['lat']}&longitude={s['lng']}&current=temperature_2m,relative_humidity_2m,apparent_temperature"
-            resp = requests.get(url, timeout=15); print("OPENMETEO", s["isim"], resp.status_code, resp.text[:80])
-            if resp.status_code == 200:
-                d = resp.json()
-                temp = round(d["current"]["temperature_2m"])
-                feels = round(d["current"]["apparent_temperature"])
-                humidity = d["current"]["relative_humidity_2m"]
-                
-                # Alarm mantığı (38 derece üstü sıcak, 0 altı soğuk/don)
-                alarm = None
+            url=f"https://api.openweathermap.org/data/2.5/weather?lat={s['lat']}&lon={s['lng']}&appid={API_KEY}&units=metric&lang=tr"
+            r=requests.get(url,timeout=10)
+
+            if r.status_code == 200:
+                d=r.json()
+
+                temp=round(d["main"]["temp"])
+                feels=round(d["main"]["feels_like"])
+                humidity=d["main"]["humidity"]
+
+                alarm=None
                 if temp >= 38 or feels >= 38:
-                    alarm = "sicak"
+                    alarm="sicak"
                 elif temp <= 0:
-                    alarm = "soguk"
-                    
+                    alarm="soguk"
+
                 sonuclar.append({
-                    "isim": s["isim"],
-                    "lat": s["lat"],
-                    "lng": s["lng"],
-                    "anlik": temp,
-                    "hissedilen": feels,
-                    "nem": humidity,
-                    "panel": s["panel"],
-                    "alarm": alarm
+                    "isim":s["isim"],
+                    "lat":s["lat"],
+                    "lng":s["lng"],
+                    "anlik":temp,
+                    "hissedilen":feels,
+                    "nem":humidity,
+                    "panel":s["panel"],
+                    "alarm":alarm
                 })
                 continue
+
         except Exception as e:
-            print("WEATHER HATA:", e)
-            continue
-        
-        # API'ye ulaşılamazsa yedek statik değer
+            print("OPENWEATHER HATA:",e)
+
+        # API başarısızsa eski değer
         sonuclar.append({
-            "isim": s["isim"],
-            "lat": s["lat"],
-            "lng": s["lng"],
-            "anlik": {"İstanbul":25,"Ankara":22,"İzmir":30,"Adana Seyhan":28,"Mersin":29,"Antalya":30,"Diyarbakır":32,"Trabzon":24,"Erzurum":18}.get(s["isim"],25),
-            "hissedilen": {"İstanbul":27,"Ankara":23,"İzmir":32,"Adana Seyhan":33,"Mersin":35,"Antalya":34,"Diyarbakır":34,"Trabzon":29,"Erzurum":20}.get(s["isim"],25),
-            "nem": {"İstanbul":70,"Ankara":40,"İzmir":30,"Adana Seyhan":75,"Mersin":80,"Antalya":80,"Diyarbakır":30,"Trabzon":80,"Erzurum":45}.get(s["isim"],50),
-            "panel": s["panel"],
-            "alarm": None
+            "isim":s["isim"],
+            "lat":s["lat"],
+            "lng":s["lng"],
+            "anlik":25,
+            "hissedilen":25,
+            "nem":50,
+            "panel":s["panel"],
+            "alarm":None
         })
-        
-    weather_cache = sonuclar
-    weather_cache_time = time.time()
+
+    weather_cache=sonuclar
+    weather_cache_time=time.time()
 
     return jsonify(sonuclar)
+
 
 @app.route('/api/risk')
 def risk():
