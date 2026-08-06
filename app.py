@@ -567,11 +567,7 @@ def sehir_sayfasi(sehir):
 
 @app.route('/sitemap.xml')
 def sitemap():
-    import time
-weather_cache = []
-weather_cache_time = 0
-
-from flask import Response
+    from flask import Response
     base = request.host_url.rstrip('/')
 
     sayfalar = [
@@ -601,11 +597,7 @@ from flask import Response
 
 @app.route('/robots.txt')
 def robots():
-    import time
-weather_cache = []
-weather_cache_time = 0
-
-from flask import Response
+    from flask import Response
     text = f"User-agent: *\nAllow: /\nSitemap: {request.host_url.rstrip('/')}/sitemap.xml"
     return Response(text, mimetype="text/plain")
 
