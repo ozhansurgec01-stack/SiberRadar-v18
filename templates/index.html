@@ -396,7 +396,7 @@ function toggleMod() {
         function canliTahminGetir() {
             fetch('/api/forecast5')
                 .then(res => res.json())
-                .then(data => {
+                .then(data => { console.log('WEATHER_DATA', data);
                     var container = document.getElementById('mgmForecastContent');
                     container.innerHTML = '';
                     if (data.tahminler.length === 0) {
