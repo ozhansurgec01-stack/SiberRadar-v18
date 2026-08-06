@@ -480,7 +480,7 @@ function toggleMod() {
                         if (sehir.panel) {
                             let panelEl = document.getElementById(sehir.panel);
                             if (panelEl) {
-                                panelEl.innerHTML = 'TEST '+sehir.anlik+'C NEM '+sehir.nem;
+                                panelEl.innerHTML = `🌡️ ${sehir.anlik ?? '--'}°C <span style="font-size:10px;color:#ffd700;text-shadow:0 0 6px #ffd700;">🔥 ${sehir.hissedilen ?? '--'}°C</span> <span style="font-size:9px;color:#38bdf8;">💧%${sehir.nem ?? '--'}</span>`;
                                 panelEl.parentElement.style.color = sehir.alarm ? (sehir.alarm === 'sicak' ? '#ff4500' : '#00aaff') : 'var(--weather-text)';
                             }
                         }
