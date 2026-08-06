@@ -126,8 +126,9 @@ def weather():
                     "alarm": alarm
                 })
                 continue
-        except Exception:
-            pass
+        except Exception as e:
+            print("WEATHER HATA:", e)
+            continue
         
         # API'ye ulaşılamazsa yedek statik değer
         sonuclar.append({
