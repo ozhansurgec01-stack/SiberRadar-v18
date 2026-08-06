@@ -101,12 +101,6 @@ def api_status():
 
 @app.route('/api/weather')
 def weather():
-    global weather_cache, weather_cache_time
-
-    # 10 dakika cache
-    if weather_cache and time.time() - weather_cache_time < 600:
-        return jsonify(weather_cache)
-
     sonuclar=[]
 
     for s in SEHIRLER:
@@ -114,7 +108,7 @@ def weather():
             url=f"https://api.openweathermap.org/data/2.5/weather?lat={s['lat']}&lon={s['lng']}&appid={API_KEY}&units=metric&lang=tr"
             r=requests.get(url,timeout=10)
 
-            if r.status_code == 200:
+            if r.status_code==200:
                 d=r.json()
 
                 temp=round(d["main"]["temp"])
@@ -122,9 +116,9 @@ def weather():
                 humidity=d["main"]["humidity"]
 
                 alarm=None
-                if temp >= 38 or feels >= 38:
+                if temp>=38 or feels>=38:
                     alarm="sicak"
-                elif temp <= 0:
+                elif temp<=0:
                     alarm="soguk"
 
                 sonuclar.append({
@@ -140,25 +134,20 @@ def weather():
                 continue
 
         except Exception as e:
-            print("OPENWEATHER HATA:",e)
+            print("WEATHER:",e)
 
-        # API başarısızsa eski değer
         sonuclar.append({
             "isim":s["isim"],
             "lat":s["lat"],
             "lng":s["lng"],
-            "anlik":25,
-            "hissedilen":25,
-            "nem":50,
+            "anlik":0,
+            "hissedilen":0,
+            "nem":0,
             "panel":s["panel"],
             "alarm":None
         })
 
-    weather_cache=sonuclar
-    weather_cache_time=time.time()
-
     return jsonify(sonuclar)
-
 
 @app.route('/api/risk')
 def risk():
