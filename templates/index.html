@@ -295,9 +295,37 @@ box-shadow:0 0 15px #00ffff;">
         var map = L.map('map', { zoomControl: false, attributionControl: false }).setView([38.9, 35.5], 6);
         var siberKatman = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 18, subdomains: 'abcd' });
         var klasikKatman = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 });
-        siberKatman.addTo(map);
+        
 
-        function toggleMod() {
+map.createPane("sicaklikPane");
+map.getPane("sicaklikPane").style.zIndex = 1000;
+map.getPane("sicaklikPane").style.pointerEvents = "none";
+
+var sicaklikRaster = L.tileLayer(
+"https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=47c985532d16457337f109fb907d8a60",
+{
+    opacity:0.85,
+    maxZoom:10,
+    pane:"sicaklikPane", className:"sicaklikOverlay"
+}
+);
+
+sicaklikRaster.on("tileload",function(e){
+ document.title="SICAKLIK TILE OK";
+});
+
+sicaklikRaster.on("tileerror",function(e){
+ document.title="SICAKLIK TILE HATA";
+});
+
+sicaklikRaster.addTo(map);
+
+
+setTimeout(function(){
+    console.log("SICAKLIK VAR MI:", map.hasLayer(sicaklikRaster));
+},3000);
+
+function toggleMod() {
             var body = document.body;
             var btn = document.getElementById('modeBtn');
             if (body.classList.contains('light-mode')) {
@@ -305,11 +333,13 @@ box-shadow:0 0 15px #00ffff;">
                 btn.innerText = "KLASİK";
                 map.removeLayer(klasikKatman);
                 siberKatman.addTo(map);
+                if (typeof sicaklikRaster !== "undefined") { sicaklikRaster.bringToFront(); }
             } else {
                 body.classList.add('light-mode');
                 btn.innerText = "SİBER";
                 map.removeLayer(siberKatman);
                 klasikKatman.addTo(map);
+                if (typeof sicaklikRaster !== "undefined") { sicaklikRaster.bringToFront(); }
             }
             setTimeout(() => map.invalidateSize({ pan: false }), 50);
         }
@@ -633,53 +663,21 @@ function kutleKapat(){
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <script>
 function hlsOynat(url){
+    console.log("HLS:", url);
+}
 </script>
-</body>
-</html>
+
 
 
 
 
 
 <script>
-
-let firtinaVerisi=[];
-
-fetch('/api/storm')
-.then(r=>r.json())
-.then(data=>{
-    firtinaVerisi=data;
-});
-
-function firtinaGoster(){
-    fetch('/api/storm')
-    .then(r=>r.json())
-    .then(data=>{
-
-        let liste=data.filter(x =>
-            x.durum==="Fırtına uyarısı" ||
-            x.durum==="Fırtına riski" ||
-            x.durum==="kuvvetli rüzgar"
-        );
-
-        let icerik="<b>🌪️ FIRTINA UYARILARI</b><br><br>";
-
-        if(liste.length===0){
-            icerik+="🌤️ Şu an fırtına uyarısı yok";
-        }else{
-            liste.forEach(x=>{
-                icerik+=`📍 <b>${x.isim}</b><br>
-                💨 Rüzgar: ${x.ruzgar} km/s<br>
-                🌡️ Sıcaklık: ${x.sicaklik}°C<br>
-                ⚠️ Durum: ${x.durum}<br><br>`;
-            });
-        }
-
-        L.popup({maxWidth:220})
-        .setLatLng(map.getCenter())
-        .setContent(icerik)
-        .openOn(map);
-
-    });
-}
+setInterval(function(){
+    if(typeof sicaklikRaster !== "undefined" && map.hasLayer(sicaklikRaster)){
+        sicaklikRaster.bringToFront();
+    }
+},2000);
 </script>
+</body>
+</html>
