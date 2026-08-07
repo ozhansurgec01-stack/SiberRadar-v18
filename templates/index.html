@@ -517,7 +517,7 @@ function toggleMod() {
                             count++;
                             let renk = d.mag >= 4.0 ? '#f85149' : '#fb923c';
                             L.circleMarker([d.lat, d.lng], { radius: Math.max(d.mag * 1.8, 3), color: '#fff', fillColor: renk, fillOpacity: 0.85, weight: 1.2 }).addTo(depremKatmani);
-                            listDiv.innerHTML += `<div class="eq-item">🕒 <span class="time-text">${d.zaman}</span> 📍 <b style="color:var(--text-eq-title);">${d.yer}</b><br>💥 Şiddet: <span class="mag-badge" style="background-color:${renk};">${d.mag}</span></div>`;
+                            listDiv.innerHTML += `<div class="eq-item">🕒 <span class="time-text">${d.zaman}</span> 📍 <b style="color:var(--text-eq-title);">${d.yer}</b><br>💥 Şiddet: <span class="mag-badge" style="background-color:${renk};">${d.mag}</span><br>📏 Derinlik: ${d.derinlik || 0} km</div>`;
                         }
                     });
 
@@ -804,5 +804,7 @@ justify-content:space-between;
 </style>
 
 <div id="stormPopup"></div>
+
+
 </body>
 </html>

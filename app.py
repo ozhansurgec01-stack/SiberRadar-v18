@@ -90,6 +90,7 @@ def api_status():
                 "zaman": (datetime.strptime(d.get("date_time",""), "%Y-%m-%d %H:%M:%S") + timedelta(hours=3)).strftime("%Y-%m-%d %H:%M:%S"),
                 "yer": d.get("title", ""),
                 "mag": float(d.get("mag", 0)),
+                "derinlik": float(d.get("depth", 0)),
                 "lat": float(c[1]),
                 "lng": float(c[0])
             })
