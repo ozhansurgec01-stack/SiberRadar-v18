@@ -198,7 +198,7 @@
             <button class="toggle-btn" id="meteoBtn" onclick="toggleRadarLayer('meteo')">☔ YAĞIŞ</button>
             <button class="toggle-btn" id="liveRainBtn" onclick="canliYagisKontrol()">🌧️ CANLI YAĞIŞ</button>
 <button class="toggle-btn" id="stormBtn" onclick="firtinaGoster()">🌪️ FIRTINA</button>
-<button class="toggle-btn" id="kutleBtn" onclick="havaKutlesiGoster()">🌍 HAVA KÜTLESİ</button>
+<button class="toggle-btn" id="kutleBtn" onclick="havaKutlesiGoster()">🌍 HAVA KÜTLESİ ANALİZİ</button>
             <button class="toggle-btn" id="modeBtn" onclick="toggleMod()">KLASİK</button>
         </div>
     </div>
@@ -270,7 +270,7 @@ font-family:monospace;
 font-size:12px;
 max-width:280px;
 box-shadow:0 0 15px #00ffff;">
-🌍 AKTİF HAVA KÜTLESİ <span onclick="kutleKapat()" style="float:right;cursor:pointer;color:white;font-size:16px;">✖</span>
+🌍 HAVA KÜTLESİ ANALİZİ <span onclick="kutleKapat()" style="float:right;cursor:pointer;color:white;font-size:16px;">✖</span>
 <br>
 <span id="kutleMetin" style="color:#fff;"></span>
 </div>
@@ -595,66 +595,26 @@ setInterval(onlineGuncelle,30000);
 
 <script>
 function havaKutlesiGoster(){
- let panel=document.getElementById("kutlePanel");
- if(panel && panel.style.display==="block"){
-   panel.style.display="none";
-   return;
- }
- fetch('/api/havakutlesi')
- .then(r=>r.json())
- .then(d=>{
-   if(!d || d.durum!=="analiz") return;
+fetch('/api/havakutlesi')
+.then(r=>r.json())
+.then(d=>{
+if(!d || d.durum!=="analiz") return;
+if(!d.hava_kaynagi || d.hava_kaynagi.includes("Belirgin")) return;
 
-   let panel=document.getElementById("kutlePanel");
-   let metin=document.getElementById("kutleMetin");
+let panel=document.getElementById("kutlePanel");
+let metin=document.getElementById("kutleMetin");
 
-   if(panel && metin){
+if(panel && metin){
+metin.innerHTML =
+d.mesaj+"<br>"+
+(d.hava_kaynagi ? d.hava_kaynagi+"<br>" : "")+
+d.hareket+"<br>"+
+"💪 Güç: "+d.guc+"<br>"+
+"📌 Etki: "+d.etki;
 
-     metin.innerHTML =
-       (d.hava_kaynagi ? d.hava_kaynagi+"<br>" : "")+
-       d.hareket+"<br>"+
-       "💪 Güç: "+d.guc+"<br>"+
-       "📌 Etki: "+d.etki;
-
-     panel.style.display="block";
-
-       panel.classList.remove("kutleAlarm");
-       panel.style.animation="none";
-
-       if(d.guc==="Güçlü"){
-         panel.classList.add("kutleAlarm");
-         panel.style.borderColor="#ff0000";
-         panel.style.boxShadow="0 0 25px #ff0000";
-       }
-       else if(d.guc==="Orta"){
-         panel.style.borderColor="#ff9900";
-         panel.style.boxShadow="0 0 20px #ff9900";
-       }
-       else{
-         panel.style.borderColor="#00ffff";
-         panel.style.boxShadow="0 0 15px #00ffff";
-       }
-
-       if(panel.kapanTimer){
-       clearTimeout(panel.kapanTimer);
-     }
-
-     panel.kapanTimer=setTimeout(function(){
-       panel.style.display="none";
-     },20000);
-   }
- });
+panel.style.display="block";
 }
-
-setInterval(()=>{ if(document.getElementById('cam-container').style.display!=='flex'){ havaKutlesiGoster(); } },60000);
-havaKutlesiGoster();
-</script>
-
-
-<script>
-function kutleKapat(){
- let p=document.getElementById("kutlePanel");
- if(p){ p.style.display="none"; }
+});
 }
 </script>
 
@@ -804,6 +764,12 @@ justify-content:space-between;
 
 <div id="stormPopup"></div>
 
+<script>
+setInterval(()=>{
+  havaKutlesiGoster();
+},60000);
 
+havaKutlesiGoster();
+</script>
 </body>
 </html>

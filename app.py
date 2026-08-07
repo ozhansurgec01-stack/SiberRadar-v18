@@ -407,7 +407,7 @@ def havakutlesi():
                 tip="hava_kutlesi"
                 mesaj=f"🌡️ Sıcak merkez: {en_sicak["isim"]} ({en_sicak["sicaklik"]}°C) | Soğuk merkez: {en_soguk["isim"]} ({en_soguk["sicaklik"]}°C) | Fark: {fark}°C"
         else:
-            mesaj="🌍 Aktif hava kütlesi: Kuzey Avrupa / Balkan soğuk hava akışı"
+            mesaj="🟢 Belirgin hava kütlesi hareketi yok"
 
         yon= en_sicak["yon"]
 
@@ -464,12 +464,14 @@ def havakutlesi():
         else:
             hava_kaynagi="🌍 Belirgin hava girişi yok"
 
-        if tip=="kuru_sicak":
+        if "Kuzey Avrupa" in hava_kaynagi or "Balkan" in hava_kaynagi:
+            etki="Sıcaklık düşüşü ve yerel rüzgar artışı olabilir"
+        elif tip=="kuru_sicak":
             etki="İç ve güney kesimlerde sıcaklık baskısı oluşturabilir"
         elif tip=="nemli_sicak":
             etki="Bunaltıcı sıcaklık ve yüksek nem etkisi oluşturabilir"
-        elif tip=="hava_kutlesi" or "Kuzey Avrupa" in hava_kaynagi or "Balkan" in hava_kaynagi:
-            etki="Sıcaklık düşüşü ve yerel rüzgar artışı olabilir"
+        elif tip=="hava_kutlesi":
+            etki="Bölgesel hava değişimi takip edilmeli"
         else:
             etki="Belirgin hava kütlesi etkisi yok"
 
@@ -477,7 +479,7 @@ def havakutlesi():
             "durum":"analiz",
             "tip":tip,
             "mesaj":(
-            "🌍 Aktif hava kütlesi: Kuzey Avrupa / Balkan soğuk hava akışı"
+            "🟢 Belirgin hava kütlesi hareketi yok"
             if ("Kuzey Avrupa" in hava_kaynagi or "Balkan" in hava_kaynagi)
             else mesaj
         ),
