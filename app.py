@@ -87,7 +87,7 @@ def api_status():
         for d in veri.get("result", [])[:50]:
             c = d.get("geojson", {}).get("coordinates", [0,0])
             liste.append({
-                "zaman": (datetime.strptime(d.get("date_time",""), "%Y-%m-%d %H:%M:%S") + timedelta(hours=3)).strftime("%Y-%m-%d %H:%M:%S"),
+                "zaman": datetime.strptime(d.get("date_time",""), "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d %H:%M:%S"),
                 "yer": d.get("title", ""),
                 "mag": float(d.get("mag", 0)),
                 "derinlik": float(d.get("depth", 0)),
