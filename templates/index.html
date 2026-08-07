@@ -639,6 +639,13 @@ panel.style.display="block";
 }
 });
 }
+
+function kutleKapat(){
+let panel=document.getElementById("kutlePanel");
+if(panel){
+panel.style.display="none";
+}
+}
 </script>
 
 
@@ -789,10 +796,6 @@ justify-content:space-between;
 <div id="stormPopup"></div>
 
 <script>
-setInterval(()=>{
-  havaKutlesiGoster();
-},60000);
-
 havaKutlesiGoster();
 </script>
 
