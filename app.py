@@ -490,38 +490,41 @@ def havakutlesi():
     except Exception as e:
         return jsonify({"durum":"hata","mesaj":str(e)})
 
-@app.route('/api/storm')
+@app.route("/api/storm")
 def storm():
+    import requests
+
+    sehirler=[
+        {"isim":"Antalya","lat":36.89,"lon":30.70},
+        {"isim":"Muğla","lat":37.21,"lon":28.36},
+        {"isim":"İzmir","lat":38.42,"lon":27.14},
+        {"isim":"Mersin","lat":36.80,"lon":34.63},
+        {"isim":"Hatay","lat":36.20,"lon":36.16},
+        {"isim":"Adana","lat":37.00,"lon":35.32}
+    ]
+
     sonuc=[]
-    try:
-        for s in SEHIRLER:
-            try:
-                url=f"http://api.openweathermap.org/data/2.5/weather?lat={s['lat']}&lon={s['lng']}&appid={API_KEY}&units=metric&lang=tr"
-                d=requests.get(url,timeout=5).json()
 
-                ruzgar=round(d.get("wind",{}).get("speed",0)*3.6)
-                sicaklik=round(d.get("main",{}).get("temp",0))
+    for s in sehirler:
+        try:
+            url=f"https://api.openweathermap.org/data/2.5/weather?lat={s['lat']}&lon={s['lon']}&appid={API_KEY}&units=metric"
+            x=requests.get(url,timeout=5).json()
 
-                if ruzgar >= 60:
-                    durum="Fırtına uyarısı"
-                elif ruzgar >= 40:
-                    durum="Fırtına riski"
-                else:
-                    durum="Normal"
+            ruzgar=round(x.get("wind",{}).get("speed",0)*3.6)
 
+            if ruzgar >= 40:
                 sonuc.append({
                     "isim":s["isim"],
                     "ruzgar":ruzgar,
-                    "sicaklik":sicaklik,
-                    "durum":durum
+                    "sicaklik":round(x.get("main",{}).get("temp",0)),
+                    "durum":"Fırtına riski"
                 })
-            except:
-                pass
 
-        return jsonify(sonuc)
+        except Exception:
+            pass
 
-    except Exception:
-        return jsonify([])
+    return jsonify(sonuc)
+
 @app.route('/api/get-visits', methods=['GET'])
 def api_get_visits_fix():
     return jsonify([])

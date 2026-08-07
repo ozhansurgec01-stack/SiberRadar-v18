@@ -680,18 +680,129 @@ setInterval(function(){
 },2000);
 </script>
 
+
+
 <script>
-function firtinaGoster() {
-    fetch('/api/storm?t=' + Date.now())
-    .then(r => r.json())
-    .then(data => {
-        alert("🌪️ FIRTINA RADARI\n\n" + (data.mesaj || JSON.stringify(data)));
-    })
-    .catch(() => {
-        alert("⚠️ Fırtına verisi alınamadı");
-    });
+function firtinaGoster(){
+
+fetch('/api/storm?t='+Date.now())
+.then(r=>r.json())
+.then(data=>{
+
+let liste=Array.isArray(data)?data:[];
+
+let html=`
+<div class="storm-box">
+<div class="storm-title">
+🌪️ FIRTINA RADARI
+<span onclick="kapatStorm()">✕</span>
+</div>`;
+
+if(liste.length===0){
+html+=`
+<p>✅ Akdeniz ve Ege'de</p>
+<p>Şu an 40 km/s üzeri fırtına yok.</p>`;
+}else{
+liste.forEach(x=>{
+html+=`
+<p>📍 ${x.isim}</p>
+<p>💨 ${x.ruzgar} km/s</p>
+<p>⚠️ ${x.durum}</p>`;
+});
 }
+
+html+="</div>";
+
+let p=document.getElementById("stormPopup");
+p.innerHTML=html;
+p.style.display="block";
+
+setTimeout(()=>{
+p.style.display="none";
+},5000);
+
+});
+
+}
+
+
+function kapatStorm(){
+document.getElementById("stormPopup").style.display="none";
+}
+
+
+function otomatikFirtinaKontrol(){
+
+fetch('/api/storm?t='+Date.now())
+.then(r=>r.json())
+.then(data=>{
+
+if(!Array.isArray(data)||data.length===0)return;
+
+let p=document.getElementById("stormPopup");
+
+let html=`
+<div class="storm-box">
+<div class="storm-title">
+🚨 FIRTINA UYARISI
+</div>`;
+
+data.forEach(x=>{
+html+=`
+<p>📍 ${x.isim}</p>
+<p>💨 ${x.ruzgar} km/s</p>
+<p>⚠️ ${x.durum}</p>`;
+});
+
+html+="</div>";
+
+p.innerHTML=html;
+p.style.display="block";
+
+setTimeout(()=>{
+p.style.display="none";
+},8000);
+
+});
+
+}
+
+setInterval(otomatikFirtinaKontrol,60000);
+window.addEventListener("load",otomatikFirtinaKontrol);
+
 </script>
 
+<style>
+#stormPopup{
+display:none;
+position:fixed;
+inset:0;
+background:#0008;
+z-index:99999;
+}
+
+.storm-box{
+width:80%;
+max-width:380px;
+margin:35% auto;
+background:#07111f;
+color:white;
+border:2px solid #00eaff;
+border-radius:20px;
+padding:20px;
+font-size:18px;
+box-shadow:0 0 20px #00eaff;
+}
+
+.storm-title{
+color:#00eaff;
+font-size:22px;
+font-weight:bold;
+display:flex;
+justify-content:space-between;
+}
+</style>
+
+<div id="stormPopup"></div>
 </body>
 </html>
