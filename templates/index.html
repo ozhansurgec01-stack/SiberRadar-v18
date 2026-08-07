@@ -681,3 +681,14 @@ setInterval(function(){
 </script>
 </body>
 </html>
+
+function firtinaGoster() {
+    fetch('/api/storm?t=' + Date.now())
+    .then(r => r.json())
+    .then(data => {
+        alert("🌪️ FIRTINA RADARI\n\n" + (data.mesaj || JSON.stringify(data)));
+    })
+    .catch(() => {
+        alert("⚠️ Fırtına verisi alınamadı");
+    });
+}
