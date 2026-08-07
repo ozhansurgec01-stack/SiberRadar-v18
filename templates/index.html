@@ -184,6 +184,29 @@
 
 </style>
 <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+
+<style>
+.firtina-alarm{
+position:fixed;
+top:20%;
+left:50%;
+transform:translateX(-50%);
+z-index:99999;
+background:rgba(5,5,20,.95);
+color:white;
+border:3px solid #ff1744;
+box-shadow:0 0 20px #ff1744,0 0 50px #ff9800;
+padding:20px;
+border-radius:15px;
+font-family:monospace;
+text-align:center;
+animation:alarmPulse 1s infinite alternate;
+}
+@keyframes alarmPulse{
+from{box-shadow:0 0 15px #ff1744;}
+to{box-shadow:0 0 45px #ff9800;}
+}
+</style>
 <body>
 
 
@@ -488,12 +511,12 @@ function toggleMod() {
                             let heatIcon = L.divIcon({ html: '<div class="radar-heat-core">🔥</div>', className: '', iconSize: [22, 22], iconAnchor: [11, 11] });
                             let marker = L.marker([sehir.lat, sehir.lng], { icon: heatIcon }).addTo(havaDurumuKatmani);
                             marker.bindTooltip(sehir.isim, { direction: 'top', className: 'city-label-tooltip' });
-                            marker.bindPopup(`<div style="font-family:monospace; text-align:center;"><b style="color:#ff4500;">🚨 KRİTİK SICAKLIK ALARMI!</b><br>📍 ${sehir.isim}<br>Sıcaklık: ${sehir.sicaklik}°C | Hissedilen: ${sehir.sicaklik}°C</div>`);
+                            marker.bindPopup(`<div style="font-family:monospace; text-align:center;"><b style="color:#ff4500;">🚨 KRİTİK SICAKLIK ALARMI!</b><br>📍 ${sehir.isim}<br>Sıcaklık: ${sehir.anlik ?? sehir.sicaklik ?? "--"}°C | Hissedilen: ${sehir.hissedilen ?? "--"}°C</div>`);
                         } else if (sehir.alarm === 'soguk') {
                             let coldIcon = L.divIcon({ html: '<div class="radar-cold-core">❄️</div>', className: '', iconSize: [22, 22], iconAnchor: [11, 11] });
                             let marker = L.marker([sehir.lat, sehir.lng], { icon: coldIcon }).addTo(havaDurumuKatmani);
                             marker.bindTooltip(sehir.isim, { direction: 'top', className: 'city-label-tooltip' });
-                            marker.bindPopup(`<div style="font-family:monospace; text-align:center;"><b style="color:#00aaff;">❄️ AŞIRI SOĞUK / DON ALARMI!</b><br>📍 ${sehir.isim}<br>Sıcaklık: ${sehir.sicaklik}°C | Hissedilen: ${sehir.sicaklik}°C</div>`);
+                            marker.bindPopup(`<div style="font-family:monospace; text-align:center;"><b style="color:#00aaff;">❄️ AŞIRI SOĞUK / DON ALARMI!</b><br>📍 ${sehir.isim}<br>Sıcaklık: ${sehir.anlik ?? sehir.sicaklik ?? "--"}°C | Hissedilen: ${sehir.hissedilen ?? "--"}°C</div>`);
                         }
                     });
                 }).catch(() => {});
@@ -641,6 +664,7 @@ setInterval(function(){
 
 
 
+
 <script>
 function firtinaGoster(){
 
@@ -771,5 +795,6 @@ setInterval(()=>{
 
 havaKutlesiGoster();
 </script>
+
 </body>
 </html>
