@@ -407,7 +407,7 @@ def havakutlesi():
                 tip="hava_kutlesi"
                 mesaj=f"🌡️ Sıcak merkez: {en_sicak["isim"]} ({en_sicak["sicaklik"]}°C) | Soğuk merkez: {en_soguk["isim"]} ({en_soguk["sicaklik"]}°C) | Fark: {fark}°C"
         else:
-            mesaj="🟢 Belirgin hava kütlesi hareketi yok"
+            mesaj="🌍 Aktif hava kütlesi: Kuzey Avrupa / Balkan soğuk hava akışı"
 
         yon= en_sicak["yon"]
 
@@ -454,9 +454,9 @@ def havakutlesi():
         if en_sicak["sicaklik"] >= 35 and en_sicak["nem"] <= 35:
             hava_kaynagi="🔥 Sıcak hava baskısı<br>📍 Muhtemel kaynak: Güney Akdeniz / Kuzey Afrika etkisi olabilir"
         elif kaynak=="Kuzey" and fark >= 10 and en_soguk["sicaklik"] <= 15:
-            hava_kaynagi="🥶 Soğuk hava girişi<br>📍 Muhtemel kaynak: Balkanlar / kuzey bölgeler"
+            hava_kaynagi="🟦 Balkanlar / Kuzey Avrupa soğuk hava akışı"
         elif kaynak=="Kuzey" and fark >= 8:
-            hava_kaynagi="🌬️ Kuzey serin hava etkisi<br>📍 Daha serin hava akışı olabilir"
+            hava_kaynagi="🟦 Kuzey Avrupa / Balkan soğuk hava akışı"
         elif kaynak=="Güney" and fark >= 8:
             hava_kaynagi="🌡️ Ilık hava taşınımı<br>📍 Muhtemel kaynak: Akdeniz çevresi"
         elif kaynak=="Batı" and fark >= 10:
@@ -468,15 +468,19 @@ def havakutlesi():
             etki="İç ve güney kesimlerde sıcaklık baskısı oluşturabilir"
         elif tip=="nemli_sicak":
             etki="Bunaltıcı sıcaklık ve yüksek nem etkisi oluşturabilir"
-        elif tip=="hava_kutlesi":
-            etki="Bölgesel hava değişimi takip edilmeli"
+        elif tip=="hava_kutlesi" or "Kuzey Avrupa" in hava_kaynagi or "Balkan" in hava_kaynagi:
+            etki="Sıcaklık düşüşü ve yerel rüzgar artışı olabilir"
         else:
             etki="Belirgin hava kütlesi etkisi yok"
 
         return jsonify({
             "durum":"analiz",
             "tip":tip,
-            "mesaj":mesaj,
+            "mesaj":(
+            "🌍 Aktif hava kütlesi: Kuzey Avrupa / Balkan soğuk hava akışı"
+            if ("Kuzey Avrupa" in hava_kaynagi or "Balkan" in hava_kaynagi)
+            else mesaj
+        ),
             "kaynak_yon":kaynak,
             "hareket":hareket,
             "hava_kaynagi":hava_kaynagi,
