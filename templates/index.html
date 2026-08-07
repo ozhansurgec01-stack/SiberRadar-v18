@@ -679,9 +679,8 @@ setInterval(function(){
     }
 },2000);
 </script>
-</body>
-</html>
 
+<script>
 function firtinaGoster() {
     fetch('/api/storm?t=' + Date.now())
     .then(r => r.json())
@@ -692,3 +691,7 @@ function firtinaGoster() {
         alert("⚠️ Fırtına verisi alınamadı");
     });
 }
+</script>
+
+</body>
+</html>
