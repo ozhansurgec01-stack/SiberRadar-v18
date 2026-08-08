@@ -503,7 +503,7 @@ function toggleMod() {
                         if (sehir.panel) {
                             let panelEl = document.getElementById(sehir.panel);
                             if (panelEl) {
-                                panelEl.innerHTML = `🌡️ ${sehir.anlik ?? '--'}°C 🔥 ${sehir.hissedilen ?? '--'}°C <span style="color:#38bdf8">💧%${sehir.nem ?? '--'}</span><br>🔽 ${sehir.basinc ?? '--'} hPa 🌬️ ${sehir.ruzgar ?? '--'} m/s<br>📡 Radar: %${sehir.hava_sinyali ?? 0} ${sehir.hava_analizi ? sehir.hava_analizi.join(', ') : ''}`;
+                                panelEl.innerHTML = `🌡️ ${sehir.anlik ?? '--'}°C 🔥 ${sehir.hissedilen ?? '--'}°C <span style="color:#38bdf8">💧%${sehir.nem ?? '--'}</span><br>🔽 ${sehir.basinc ?? '--'} hPa 🌬️ ${sehir.ruzgar ?? '--'} m/s<br>📡 %${sehir.hava_sinyali ?? 0} ${sehir.hava_analizi ? sehir.hava_analizi[0] : ''}`;
                                 panelEl.parentElement.style.color = sehir.alarm ? (sehir.alarm === 'sicak' ? '#ff4500' : '#00aaff') : 'var(--weather-text)';
                             }
                         }
