@@ -116,6 +116,26 @@ def weather():
                 temp=round(d["main"]["temp"])
                 feels=round(d["main"]["feels_like"])
                 humidity=d["main"]["humidity"]
+                pressure=d["main"]["pressure"]
+                wind=d["wind"]["speed"]
+
+                sinyal=0
+                analiz=[]
+
+                if pressure < 1005:
+                    sinyal += 30
+                    analiz.append("Alçak basınç")
+
+                if wind > 7:
+                    sinyal += 30
+                    analiz.append("Rüzgar artışı")
+
+                if temp <= 15:
+                    sinyal += 20
+                    analiz.append("Serin hava")
+
+                if not analiz:
+                    analiz.append("Normal atmosferik durum")
 
                 alarm=None
                 if temp>=38 or feels>=38:
@@ -130,6 +150,10 @@ def weather():
                     "anlik":temp,
                     "hissedilen":feels,
                     "nem":humidity,
+                    "basinc":pressure,
+                    "ruzgar":wind,
+                    "hava_sinyali":sinyal,
+                    "hava_analizi":analiz,
                     "panel":s["panel"],
                     "alarm":alarm
                 })
