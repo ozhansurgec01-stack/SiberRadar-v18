@@ -539,7 +539,32 @@ function toggleMod() {
                         if (d.mag >= 3.0) {
                             count++;
                             let renk = d.mag >= 4.0 ? '#f85149' : '#fb923c';
-                            L.circleMarker([d.lat, d.lng], { radius: Math.max(d.mag * 1.8, 3), color: '#fff', fillColor: renk, fillOpacity: 0.85, weight: 1.2 }).addTo(depremKatmani);
+                            let etki = 10000;
+if (d.mag >= 3.0) etki = 20000;
+if (d.mag >= 3.5) etki = 35000;
+if (d.mag >= 4.0) etki = 55000;
+if (d.mag >= 4.5) etki = 80000;
+if (d.mag >= 5.0) etki = 110000;
+if (d.mag >= 5.5) etki = 150000;
+if (d.mag >= 6.0) etki = 200000;
+
+L.circle([d.lat, d.lng], {
+    radius: etki,
+    color: '#ff0000',
+    weight: 3,
+    opacity: 1,
+    fill: false,
+    fillOpacity: 0,
+    interactive: false
+}).addTo(depremKatmani);
+
+L.circleMarker([d.lat, d.lng], {
+    radius: Math.max(d.mag * 1.8, 3),
+    color: '#fff',
+    fillColor: renk,
+    fillOpacity: 0.85,
+    weight: 1.2
+}).addTo(depremKatmani);
                             listDiv.innerHTML += `<div class="eq-item">🕒 <span class="time-text">${d.zaman}</span> 📍 <b style="color:var(--text-eq-title);">${d.yer}</b><br>💥 Şiddet: <span class="mag-badge" style="background-color:${renk};">${d.mag}</span><br>📏 Derinlik: ${d.derinlik || 0} km</div>`;
                         }
                     });
