@@ -184,18 +184,33 @@
 
 
 .storm-content{
-max-height:60vh;
+max-height:58vh;
 overflow-y:auto;
 margin-top:12px;
+padding-right:6px;
+scroll-behavior:smooth;
+}
+
+.storm-content::-webkit-scrollbar{
+width:6px;
+}
+
+.storm-content::-webkit-scrollbar-thumb{
+background:#00eaff;
+border-radius:10px;
 }
 
 .storm-item{
 background:linear-gradient(135deg,#10243a,#07111f);
 border:1px solid #00eaff55;
 border-radius:14px;
-padding:12px;
-margin:10px 0;
+padding:8px 12px;
+margin:8px 0;
 box-shadow:0 0 10px #00eaff33;
+}
+
+.storm-item p{
+margin:6px 0;
 }
 
 .storm-wind{
@@ -839,6 +854,11 @@ font-size:22px;
 font-weight:bold;
 display:flex;
 justify-content:space-between;
+position:sticky;
+top:0;
+background:#07111f;
+z-index:5;
+padding-bottom:10px;
 }
 </style>
 
