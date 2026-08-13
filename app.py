@@ -531,7 +531,14 @@ def storm():
         {"isim":"İzmir","lat":38.42,"lon":27.14},
         {"isim":"Mersin","lat":36.80,"lon":34.63},
         {"isim":"Hatay","lat":36.20,"lon":36.16},
-        {"isim":"Adana","lat":37.00,"lon":35.32}
+        {"isim":"Adana","lat":37.00,"lon":35.32},
+        {"isim":"İstanbul","lat":41.01,"lon":28.97},
+        {"isim":"Bursa","lat":40.19,"lon":29.06},
+        {"isim":"Kocaeli","lat":40.76,"lon":29.94},
+        {"isim":"Sakarya","lat":40.78,"lon":30.40},
+        {"isim":"Tekirdağ","lat":40.98,"lon":27.51},
+        {"isim":"Balıkesir","lat":39.65,"lon":27.88},
+        {"isim":"Çanakkale","lat":40.15,"lon":26.40}
     ]
 
     sonuc=[]
@@ -543,7 +550,7 @@ def storm():
 
             ruzgar=round(x.get("wind",{}).get("speed",0)*3.6)
 
-            if ruzgar >= 40:
+            if ruzgar >= 30:
                 sonuc.append({
                     "isim":s["isim"],
                     "ruzgar":ruzgar,
