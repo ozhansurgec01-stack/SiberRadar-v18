@@ -667,6 +667,7 @@ def api_alerts():
                 "alert": True,
                 "type": "earthquake",
                 "title": "🔴 SiberRadar Deprem Uyarısı",
+                "message": f"📍 {deprem.get('title','Bilinmeyen konum')}\\n💥 Şiddet: {mag}\\n📏 Derinlik: {deprem.get('depth','-')} km\\n🕒 {deprem.get('date_time','-')}",
                 "location": deprem.get("title","Bilinmeyen konum"),
                 "magnitude": mag,
                 "depth": deprem.get("depth","-"),
