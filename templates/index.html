@@ -716,7 +716,7 @@ let html=`
 if(liste.length===0){
 html+=`
 <p>✅ Akdeniz ve Ege'de</p>
-<p>Şu an 40 km/s üzeri fırtına yok.</p>`;
+<p>Şu an 30 km/s üzeri fırtına yok.</p>`;
 }else{
 liste.forEach(x=>{
 html+=`
@@ -724,7 +724,7 @@ html+=`
 });
 }
 
-html+="</div>";
+html+="</div></div>";
 
 let p=document.getElementById("stormPopup");
 p.innerHTML=html;
@@ -760,12 +760,13 @@ let html=`
 🚨 FIRTINA UYARISI
 </div>`;
 
+html+='<div class="storm-content">';
 data.forEach(x=>{
 html+=`
 <div class="storm-item"><p>📍 ${x.isim}</p><p class="storm-wind">💨 ${x.ruzgar} km/s</p><p class="storm-risk">⚠️ ${x.durum}</p></div>`;
 });
 
-html+="</div>";
+html+="</div></div>";
 
 p.innerHTML=html;
 p.style.display="block";
