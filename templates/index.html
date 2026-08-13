@@ -318,7 +318,8 @@ to{box-shadow:0 0 45px #ff9800;}
         </div>
 
 <div class="bottom-area">
-        <div id="list"><div style="text-align: center; padding: 10px; font-family:monospace;">Radar verileri işleniyor...</div>
+        <button id="quakeToggle">🌍</button>
+<div id="list"><div style="text-align: center; padding: 10px; font-family:monospace;">Radar verileri işleniyor...</div>
 </div>
 <div id="kutlePanel"
 style="
@@ -868,5 +869,59 @@ padding-bottom:10px;
 havaKutlesiGoster();
 </script>
 
+
+<style>
+#list.hidden {
+ display:none !important;
+}
+
+.map-container.full-map {
+ height:calc(var(--app-height) - 170px) !important;
+}
+
+#quakeToggle {
+ position:fixed;
+ right:15px;
+ bottom:90px;
+ width:38px;
+ height:38px;
+ border-radius:50%;
+ z-index:9999;
+ background:#006eff;
+ color:white;
+ border:2px solid #00eaff;
+ font-size:18px;
+ padding:0;
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+
+let btn=document.getElementById("quakeToggle");
+let list=document.getElementById("list");
+let mapBox=document.querySelector(".map-container");
+
+if(btn && list && mapBox){
+
+btn.onclick=function(){
+
+list.classList.toggle("hidden");
+mapBox.classList.toggle("full-map");
+
+setTimeout(function(){
+ if(window.map){
+  map.invalidateSize();
+ }
+},300);
+
+};
+
+}
+
+});
+</script>
+
 </body>
+
 </html>
