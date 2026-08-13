@@ -1,3 +1,6 @@
 __pycache__/
 *.pyc
 .env
+SiberRadar.apk
+app_yedek.py
+templates/index_yedek.html
