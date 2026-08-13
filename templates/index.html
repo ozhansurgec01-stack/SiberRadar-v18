@@ -720,9 +720,7 @@ html+=`
 }else{
 liste.forEach(x=>{
 html+=`
-<p>📍 ${x.isim}</p>
-<p>💨 ${x.ruzgar} km/s</p>
-<p>⚠️ ${x.durum}</p>`;
+<div class="storm-item"><p>📍 ${x.isim}</p><p class="storm-wind">💨 ${x.ruzgar} km/s</p><p class="storm-risk">⚠️ ${x.durum}</p></div>`;
 });
 }
 
@@ -764,9 +762,7 @@ let html=`
 
 data.forEach(x=>{
 html+=`
-<p>📍 ${x.isim}</p>
-<p>💨 ${x.ruzgar} km/s</p>
-<p>⚠️ ${x.durum}</p>`;
+<div class="storm-item"><p>📍 ${x.isim}</p><p class="storm-wind">💨 ${x.ruzgar} km/s</p><p class="storm-risk">⚠️ ${x.durum}</p></div>`;
 });
 
 html+="</div>";
