@@ -636,15 +636,53 @@ def robots():
     return Response(text, mimetype="text/plain")
 
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000)
-
-
-
-
-
 @app.after_request
 def no_cache(response):
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     response.headers["Pragma"] = "no-cache"
     return response
+
+
+# SiberRadar Bildirim Motoru
+son_deprem_kimlik = None
+
+@app.route('/api/alerts')
+def api_alerts():
+    global son_deprem_kimlik
+
+    try:
+        # Kandilli deprem verisi
+        url = "https://api.orhanaydogdu.com.tr/deprem/kandilli/live"
+        data = requests.get(url, timeout=10).json()
+
+        deprem = data.get("result", [])[0]
+
+        mag = float(deprem.get("mag", 0))
+        deprem_id = str(deprem.get("earthquake_id", deprem.get("date_time")))
+
+        if mag >= 4.0 and deprem_id != son_deprem_kimlik:
+            son_deprem_kimlik = deprem_id
+
+            return jsonify({
+                "alert": True,
+                "type": "earthquake",
+                "title": "🔴 SiberRadar Deprem Uyarısı",
+                "location": deprem.get("title","Bilinmeyen konum"),
+                "magnitude": mag,
+                "depth": deprem.get("depth","-"),
+                "time": deprem.get("date_time","-")
+            })
+
+        return jsonify({"alert":False})
+
+    except Exception as e:
+        return jsonify({
+            "alert":False,
+            "error":str(e)
+        })
+
+
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8000)

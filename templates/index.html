@@ -922,6 +922,58 @@ setTimeout(function(){
 });
 </script>
 
+
+
+<script>
+// SiberRadar bildirim kontrol motoru
+let sonDepremBildirim = "";
+
+async function bildirimKontrol(){
+
+    try{
+        const r = await fetch("/api/alerts");
+        const d = await r.json();
+
+        if(d.alert && d.type === "earthquake"){
+
+            let kimlik = d.location + d.time;
+
+            if(kimlik !== sonDepremBildirim){
+
+                sonDepremBildirim = kimlik;
+
+                if(Notification.permission === "granted"){
+
+                    new Notification(d.title,{
+                        body:
+                        "📍 "+d.location+
+                        "\n💥 Şiddet: "+d.magnitude+
+                        "\n📏 Derinlik: "+d.depth+" km"+
+                        "\n🕒 "+d.time
+                    });
+
+                }
+            }
+        }
+
+    }catch(e){
+        console.log("Bildirim kontrol:",e);
+    }
+}
+
+
+if("Notification" in window){
+
+    if(Notification.permission !== "granted"){
+        Notification.requestPermission();
+    }
+
+    setInterval(bildirimKontrol,30000);
+}
+
+</script>
+
+
 </body>
 
 </html>
