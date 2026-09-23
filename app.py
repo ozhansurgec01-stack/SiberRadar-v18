@@ -358,29 +358,85 @@ def forecast5():
 @app.route('/api/rain-check')
 def rain_check():
     try:
-        url = f"http://api.openweathermap.org/data/2.5/weather?lat=37.025&lon=35.371&appid={API_KEY}&units=metric&lang=tr"
-        r = requests.get(url, timeout=10).json()
+        noktalar = [
+            ("Aladağ", 37.5452473, 35.3944418),
+            ("Ceyhan", 37.0288825, 35.8124428),
+            ("Çukurova", 37.0468862, 35.2823275),
+            ("Feke", 37.8240530, 35.9182620),
+            ("İmamoğlu", 37.2577320, 35.6613040),
+            ("Karaisalı", 37.2571843, 35.0586409),
+            ("Karataş", 36.5646007, 35.3841416),
+            ("Kozan", 37.4477857, 35.8166308),
+            ("Pozantı", 37.4229083, 34.8731665),
+            ("Saimbeyli", 37.9845639, 36.0888261),
+            ("Sarıçam", 37.0197412, 35.3989919),
+            ("Seyhan", 37.1024202, 35.3061086),
+            ("Tufanbeyli", 38.2603004, 36.2220740),
+            ("Yumurtalık", 36.7824460, 35.7994910),
+            ("Yüreğir", 36.9894584, 35.3408834),
+        ]
 
-        hava = r.get("weather", [{}])[0].get("description", "").lower()
+        yerler = []
 
-        if any(x in hava for x in ["yağmur", "rain", "sağanak", "drizzle", "fırtına"]):
-            durum = "Yağmur yağıyor"
-        else:
-            durum = "Yağış yok / Açık"
+        for ilce, lat, lon in noktalar:
+            try:
+                url = (
+                    "http://api.openweathermap.org/data/2.5/weather"
+                    f"?lat={lat}&lon={lon}&appid={API_KEY}"
+                    "&units=metric&lang=tr"
+                )
 
-        return jsonify({
-            "yerler": [
-                {
+                r = requests.get(url, timeout=10)
+
+                if r.status_code != 200:
+                    yerler.append({
+                        "il": "Adana",
+                        "ilçe": ilce,
+                        "ilce": ilce,
+                        "durum": "Veri alınamadı"
+                    })
+                    continue
+
+                data = r.json()
+                hava = data.get("weather", [{}])[0].get(
+                    "description", "Durum bilinmiyor"
+                ).strip()
+
+                yagis = any(
+                    x in hava.lower()
+                    for x in [
+                        "yağmur",
+                        "rain",
+                        "sağanak",
+                        "drizzle",
+                        "kar",
+                        "snow",
+                        "fırtına",
+                        "thunderstorm"
+                    ]
+                )
+
+                durum = f"🌧️ {hava}" if yagis else f"🌤️ {hava}"
+
+                yerler.append({
                     "il": "Adana",
-                    "ilçe": "Merkez",
-   "ilce": "Merkez",
+                    "ilçe": ilce,
+                    "ilce": ilce,
                     "durum": durum
-                }
-            ]
-        })
+                })
 
-    except Exception as e:
-        return jsonify({"yerler":[{"il":"Adana","ilçe":"Merkez","ilce":"Merkez","durum":"Veri alınamadı"}]})
+            except Exception:
+                yerler.append({
+                    "il": "Adana",
+                    "ilçe": ilce,
+                    "ilce": ilce,
+                    "durum": "Veri alınamadı"
+                })
+
+        return jsonify({"yerler": yerler})
+
+    except Exception:
+        return jsonify({"yerler": []})
 
 @app.route('/api/polen')
 def polen():
