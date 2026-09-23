@@ -639,24 +639,37 @@ L.circleMarker([d.lat, d.lng], {
             let eskiBox = document.getElementById("yagisPopup");
             if(eskiBox) eskiBox.remove();
 
-            let btn = document.getElementById("liveRainBtn"); if(btn) btn.innerHTML="⏳ RADAR";
+            let btn = document.getElementById("liveRainBtn");
+            if(btn) btn.innerHTML="⏳ RADAR";
+
             let box = document.createElement("div");
             box.id = "yagisPopup";
-            box.style = "position:fixed;top:90px;left:50%;transform:translateX(-50%);background:white;color:#111;padding:18px;border-radius:15px;z-index:99999;box-shadow:0 5px 20px #0008;max-width:420px;white-space:nowrap;";
-            box.innerHTML = "🌧️ <b>CANLI YAĞIŞ</b><br><br>🔎 Türkiye geneli radar kontrol ediliyor...";
+            box.style = "position:fixed;top:90px;left:50%;transform:translateX(-50%);background:white;color:#111;padding:18px;border-radius:15px;z-index:99999;box-shadow:0 5px 20px #0008;max-width:420px;width:calc(100% - 30px);max-height:70vh;overflow-y:auto;";
+            box.innerHTML = "🌧️ <b>ADANA 15 İLÇE CANLI DURUM</b><br><br>🔎 Veriler alınıyor...";
             document.body.appendChild(box);
+
             try {
                 let r = await fetch("/api/rain-check");
                 let d = await r.json();
+
                 if(d.yerler && d.yerler.length){
-                    let liste = d.yerler.map(x => " 📍 "+x.il+" - "+x.ilce+" <b>"+x.durum+"</b>").join("<br>");
-                    box.innerHTML = "🌧️ <b>Yağış tespit edilen bölgeler:</b><br><br>"+ liste+"<br><br>🛰️ RainViewer";
+                    let liste = d.yerler.map(x =>
+                        "📍 <b>" + x.ilce + "</b> — " + x.durum
+                    ).join("<br>");
+
+                    box.innerHTML =
+                        "🌧️ <b>ADANA 15 İLÇE CANLI DURUM</b>" +
+                        "<br><br>" +
+                        liste +
+                        "<br><br>🛰️ RainViewer";
                 } else {
-                    box.innerHTML = "☀️ Aktif yağış tespit edilmedi.";
+                    box.innerHTML = "⚠️ İlçe hava verileri alınamadı.";
                 }
+
             } catch(e) {
                 box.innerHTML = "⚠️ Radar kontrol hatası";
             }
+
             setTimeout(() => box.remove(), 10000);
             if(btn) btn.innerHTML = "🌧️ CANLI YAĞIŞ";
         }
