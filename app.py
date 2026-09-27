@@ -355,6 +355,130 @@ def forecast5():
 
     except Exception as e:
         return jsonify({"tahminler":[]})
+
+def rainviewer_yagis_var_mi(lat, lon):
+    """RainViewer son radar karesinde verilen noktada yağış var mı?"""
+    try:
+        import math
+        import struct
+        import zlib
+
+        meta = requests.get(
+            "https://api.rainviewer.com/public/weather-maps.json",
+            timeout=10
+        ).json()
+
+        radar = meta.get("radar", {}).get("past", [])
+        if not radar:
+            return None
+
+        path = radar[-1].get("path")
+        if not path:
+            return None
+
+        z = 7
+        n = 2 ** z
+
+        xf = (lon + 180) / 360 * n
+        yf = (
+            1 - math.asinh(math.tan(math.radians(lat))) / math.pi
+        ) / 2 * n
+
+        tx, ty = int(xf), int(yf)
+        px = int((xf - tx) * 256)
+        py = int((yf - ty) * 256)
+
+        url = (
+            f"https://tilecache.rainviewer.com"
+            f"{path}/256/{z}/{tx}/{ty}/2/1_1.png"
+        )
+
+        raw = requests.get(url, timeout=10).content
+
+        if raw[:8] != b"\x89PNG\r\n\x1a\n":
+            return None
+
+        pos = 8
+        idat = b""
+        width = height = bit_depth = color_type = None
+
+        while pos < len(raw):
+            length = struct.unpack(">I", raw[pos:pos+4])[0]
+            typ = raw[pos+4:pos+8]
+            data = raw[pos+8:pos+8+length]
+            pos += 12 + length
+
+            if typ == b"IHDR":
+                width, height, bit_depth, color_type, _, _, _ = (
+                    struct.unpack(">IIBBBBB", data)
+                )
+            elif typ == b"IDAT":
+                idat += data
+            elif typ == b"IEND":
+                break
+
+        if (
+            width != 256
+            or height != 256
+            or bit_depth != 8
+            or color_type != 6
+        ):
+            return None
+
+        decoded = zlib.decompress(idat)
+        bpp = 4
+        stride = width * bpp
+        rows = []
+        prev = bytearray(stride)
+        ppos = 0
+
+        for _ in range(height):
+            filtre = decoded[ppos]
+            ppos += 1
+            cur = bytearray(decoded[ppos:ppos + stride])
+            ppos += stride
+
+            for i in range(stride):
+                left = cur[i-bpp] if i >= bpp else 0
+                up = prev[i]
+                ul = prev[i-bpp] if i >= bpp else 0
+
+                if filtre == 1:
+                    cur[i] = (cur[i] + left) & 255
+                elif filtre == 2:
+                    cur[i] = (cur[i] + up) & 255
+                elif filtre == 3:
+                    cur[i] = (cur[i] + ((left + up) // 2)) & 255
+                elif filtre == 4:
+                    p0 = left + up - ul
+                    pa = abs(p0 - left)
+                    pb = abs(p0 - up)
+                    pc = abs(p0 - ul)
+                    pr = (
+                        left
+                        if pa <= pb and pa <= pc
+                        else up if pb <= pc else ul
+                    )
+                    cur[i] = (cur[i] + pr) & 255
+
+            rows.append(cur)
+            prev = cur
+
+        aktif = 0
+
+        for yy in range(max(0, py - 2), min(height, py + 3)):
+            row = rows[yy]
+            for xx in range(max(0, px - 2), min(width, px + 3)):
+                alpha = row[xx * 4 + 3]
+                if alpha > 0:
+                    aktif += 1
+
+        return aktif > 0
+
+    except Exception:
+        return None
+
+
 @app.route('/api/rain-check')
 def rain_check():
     try:
@@ -402,19 +526,38 @@ def rain_check():
                     "description", "Durum bilinmiyor"
                 ).strip()
 
-                yagis = any(
-                    x in hava.lower()
-                    for x in [
-                        "yağmur",
-                        "rain",
-                        "sağanak",
-                        "drizzle",
-                        "kar",
-                        "snow",
-                        "fırtına",
-                        "thunderstorm"
-                    ]
+                rain_data = data.get("rain") or {}
+                yagis_miktari = (
+                    rain_data.get("1h", 0) or 0
+                ) + (
+                    rain_data.get("3h", 0) or 0
                 )
+
+                yagis = (
+                    yagis_miktari > 0
+                    or any(
+                        x in hava.lower()
+                        for x in [
+                            "yağmur",
+                            "rain",
+                            "sağanak",
+                            "drizzle",
+                            "kar",
+                            "snow",
+                            "fırtına",
+                            "thunderstorm"
+                        ]
+                    )
+                )
+
+                radar_yagis = rainviewer_yagis_var_mi(lat, lon)
+
+                # RainViewer canlı radar sonucu varsa önceliklidir.
+                # Radar verisi alınamazsa mevcut OpenWeather sonucu korunur.
+                if radar_yagis is True:
+                    yagis = True
+                elif radar_yagis is False:
+                    yagis = False
 
                 durum = f"🌧️ {hava}" if yagis else f"🌤️ {hava}"
 
