@@ -759,7 +759,36 @@ function toggleMod() {
                 hlsOynat(url);
             } else {
                 iframe.style.display = 'block';
-                iframe.src = url;
+
+                if (type === 'yt') {
+                    let youtubeId = '';
+
+                    try {
+                        let u = new URL(url);
+
+                        if (u.hostname.includes('youtu.be')) {
+                            youtubeId = u.pathname.replace(/^\//, '').split('/')[0];
+                        } else if (u.hostname.includes('youtube.com')) {
+                            if (u.pathname.startsWith('/embed/')) {
+                                youtubeId = u.pathname.split('/')[2];
+                            } else if (u.pathname.startsWith('/live/')) {
+                                youtubeId = u.pathname.split('/')[2];
+                            } else {
+                                youtubeId = u.searchParams.get('v') || '';
+                            }
+                        }
+                    } catch (e) {
+                        console.error('YouTube URL HATASI:', e);
+                    }
+
+                    if (youtubeId) {
+                        iframe.src = 'https://www.youtube.com/embed/' + youtubeId + '?autoplay=1&mute=1';
+                    } else {
+                        iframe.src = url;
+                    }
+                } else {
+                    iframe.src = url;
+                }
             }
 
             let cam=document.getElementById('cam-container');
