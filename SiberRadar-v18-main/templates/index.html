@@ -78,7 +78,19 @@
               font-family: monospace;
               color: #fff;
           }
-        #cam-list-banner { border: 2px solid var(--neon-color); }
+        #cam-list-banner {
+              position: fixed;
+              top: 55px;
+              left: 10px;
+              right: 10px;
+              width: auto;
+              max-height: calc(100vh - 70px);
+              overflow-y: auto;
+              margin: 0;
+              box-sizing: border-box;
+              z-index: 9999;
+              border: 2px solid var(--neon-color);
+          }
         .mgm-title, .cam-list-title {
             font-weight: bold; font-size: 11px; display: flex; justify-content: space-between;
             align-items: center; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 4px; margin-bottom: 6px;
@@ -282,6 +294,67 @@ to{box-shadow:0 0 45px #ff9800;}
                 <span>🎥 CANLI KAMERA VE İSTASYON LİSTESİ</span>
                 <span style="cursor:pointer; color:#ff4500;" onclick="togglePanel('cam')">[X]</span>
             </div>
+
+            <div id="kameraManuelEkleForm" style="padding:8px; border-bottom:1px solid rgba(0,236,255,.25);">
+                <div style="font-weight:bold; color:#00ecff; margin-bottom:6px;">➕ YENİ KAMERA EKLE</div>
+
+                <input id="manuelKameraAdi" type="text"
+                    placeholder="Kamera adı"
+                    style="width:100%; box-sizing:border-box; margin-bottom:6px; padding:7px; background:#050b12; color:#fff; border:1px solid #00ecff; border-radius:6px;">
+
+                <input id="manuelKameraLink" type="text"
+                    placeholder="Yayın URL'si"
+                    style="width:100%; box-sizing:border-box; margin-bottom:6px; padding:7px; background:#050b12; color:#fff; border:1px solid #00ecff; border-radius:6px;">
+
+                <div style="display:flex; gap:6px; margin-bottom:6px;">
+                    <input id="manuelKameraLat" type="number" step="any"
+                        placeholder="Enlem"
+                        style="width:50%; box-sizing:border-box; padding:7px; background:#050b12; color:#fff; border:1px solid #00ecff; border-radius:6px;">
+
+                    <input id="manuelKameraLng" type="number" step="any"
+                        placeholder="Boylam"
+                        style="width:50%; box-sizing:border-box; padding:7px; background:#050b12; color:#fff; border:1px solid #00ecff; border-radius:6px;">
+                </div>
+
+                <select id="manuelKameraType"
+                    style="width:100%; box-sizing:border-box; margin-bottom:6px; padding:7px; background:#050b12; color:#fff; border:1px solid #00ecff; border-radius:6px;">
+                    <option value="yt">▶️ YouTube</option>
+                    <option value="normal">📷 Normal yayın</option>
+                    <option value="hls">📺 HLS</option>
+                </select>
+
+                <button type="button" onclick="manuelKameraEkle()"
+                    style="width:100%; padding:8px; background:#00ff88; color:#001018; border:0; border-radius:6px; font-weight:bold; cursor:pointer;">
+                    ➕ KAMERAYI EKLE
+                </button>
+
+                <div id="manuelKameraStatus" style="font-size:11px; margin-top:6px; color:#9ca3af;"></div>
+            </div>
+            <div style="padding:8px; border-bottom:1px solid rgba(0,236,255,.25);">
+                <input
+                    id="hlsCameraName"
+                    type="text"
+                    placeholder="HLS yayın adı"
+                    style="width:100%; box-sizing:border-box; margin-bottom:6px; padding:7px; background:#050b12; color:#fff; border:1px solid #00ecff; border-radius:6px;"
+                >
+
+                <input
+                    id="hlsFileInput"
+                    type="file"
+                    multiple
+                    accept=".m3u8,.ts,.m4s,.mp4,.aac,.vtt,.key"
+                    style="width:100%; color:#fff; margin-bottom:6px;"
+                >
+
+                <button
+                    type="button"
+                    onclick="hlsYukle()"
+                    style="width:100%; padding:8px; background:#00ecff; color:#001018; border:0; border-radius:6px; font-weight:bold; cursor:pointer;"
+                >📺 HLS YÜKLE</button>
+
+                <div id="hlsUploadStatus" style="font-size:11px; margin-top:6px; color:#9ca3af;"></div>
+            </div>
+
             <div class="cam-dropdown-list" id="camDropdownContent"></div>
         </div>
         <div class="map-container">
@@ -314,6 +387,12 @@ to{box-shadow:0 0 45px #ff9800;}
             </div>
             <div class="iframe-wrapper">
                 <iframe id="cam-frame" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                <video id="hls-frame"
+                       controls
+                       autoplay
+                       muted
+                       playsinline
+                       style="width:100%;height:100%;display:none;background:#000;"></video>
             </div>
         </div>
 
@@ -426,14 +505,6 @@ function toggleMod() {
             } else {
                 mgmBanner.style.display = type === 'mgm' ? 'block' : 'none';
                 camBanner.style.display = type === 'cam' ? 'block' : 'none';
-                if(type === 'cam'){
-                    camBanner.style.position='fixed';
-                    camBanner.style.top='55px';
-                    camBanner.style.left='10px';
-                    camBanner.style.right='10px';
-                    camBanner.style.width='calc(100% - 20px)';
-                    camBanner.style.zIndex='9999';
-                }
                 mgmBtn.classList.toggle('active-mgm', type === 'mgm');
                 camBtn.classList.toggle('active-cam', type === 'cam');
                 aktifPanel = type;
@@ -446,17 +517,164 @@ function toggleMod() {
         var kameralarVerisi = {{ kameralar | tojson }};
         function kameraListesiniDoldur() {
             var container = document.getElementById('camDropdownContent');
-            if (container.children.length > 0) return;
             container.innerHTML = '';
+
             kameralarVerisi.forEach(function(k) {
                 var [isim, lat, lng, link, type] = k;
-                var ikon = type === 'radar' ? "📡" : (type === 'yt' ? "▶️" : "📷");
+                var ikon = type === 'radar' ? "📡" : (type === 'yt' ? "▶️" : (type === 'hls' ? "📺" : "📷"));
+
                 if (type === 'radar') {
                     container.innerHTML += `<div class="cam-dropdown-item" onclick="alert('Bu bir sismik istasyon verisidir, istasyon aktiftir.')"><span>${ikon} <b>${isim}</b></span><span style="color:#38bdf8;">[SİSMİK]</span></div>`;
                 } else {
-                    container.innerHTML += `<div class="cam-dropdown-item" onclick="canlıYayınAc('${link}', '${isim}'); return false;"><span>${ikon} <b>${isim}</b></span><span style="color:var(--neon-color);">İzle ▶</span></div>`;
+                    container.innerHTML += `<div class="cam-dropdown-item" style="display:flex; justify-content:space-between; align-items:center;">
+    <div onclick="canlıYayınAc('${link}', '${isim}', '${type}'); return false;" style="flex-grow:1; cursor:pointer;"><span>${ikon} <b>${isim}</b></span></div>
+    <div>
+        <span style="color:var(--neon-color); margin-right:10px; cursor:pointer;" onclick="canlıYayınAc('${link}', '${isim}', '${type}'); return false;">İzle ▶</span>
+        <span style="color:#ff4444; cursor:pointer; font-weight:bold;" onclick="if(confirm('${isim} silinsin mi?')) { fetch('/sil_kamera', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: '${isim}' }) }).then(() => location.reload()); } return false;">Sil 🗑️</span>
+    </div>
+</div>`;
                 }
             });
+        }
+
+        async function manuelKameraEkle() {
+            var nameInput = document.getElementById('manuelKameraAdi');
+            var linkInput = document.getElementById('manuelKameraLink');
+            var latInput = document.getElementById('manuelKameraLat');
+            var lngInput = document.getElementById('manuelKameraLng');
+            var typeInput = document.getElementById('manuelKameraType');
+            var status = document.getElementById('manuelKameraStatus');
+
+            var isim = nameInput.value.trim();
+            var link = linkInput.value.trim();
+            var lat = latInput.value.trim();
+            var lng = lngInput.value.trim();
+            var tip = typeInput.value;
+
+            if (!isim || !link) {
+                status.textContent = "Kamera adı ve yayın URL'si zorunludur.";
+                status.style.color = '#ff6b6b';
+                return;
+            }
+
+            if (lat !== '' && isNaN(Number(lat))) {
+                status.textContent = 'Enlem geçerli bir sayı olmalıdır.';
+                status.style.color = '#ff6b6b';
+                return;
+            }
+
+            if (lng !== '' && isNaN(Number(lng))) {
+                status.textContent = 'Boylam geçerli bir sayı olmalıdır.';
+                status.style.color = '#ff6b6b';
+                return;
+            }
+
+            status.textContent = 'Kamera ekleniyor...';
+            status.style.color = '#00ecff';
+
+            try {
+                var response = await fetch('/ekle_kamera', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        name: isim,
+                        lat: lat === '' ? 0 : Number(lat),
+                        lng: lng === '' ? 0 : Number(lng),
+                        link: link,
+                        type: tip
+                    })
+                });
+
+                var data = await response.json();
+
+                if (!response.ok || !data.ok) {
+                    throw new Error(data.error || 'Kamera eklenemedi');
+                }
+
+                if (data.kamera) {
+                    kameralarVerisi.push(data.kamera);
+                }
+
+                kameraListesiniDoldur();
+
+                status.textContent = 'Kamera başarıyla eklendi.';
+                status.style.color = '#00ff88';
+
+                nameInput.value = '';
+                linkInput.value = '';
+                latInput.value = '';
+                lngInput.value = '';
+                typeInput.value = 'yt';
+
+            } catch (error) {
+                console.error('MANUEL KAMERA EKLEME HATASI:', error);
+                status.textContent = error.message || 'Kamera eklenemedi.';
+                status.style.color = '#ff6b6b';
+            }
+        }
+
+        async function hlsYukle() {
+            var input = document.getElementById('hlsFileInput');
+            var nameInput = document.getElementById('hlsCameraName');
+            var status = document.getElementById('hlsUploadStatus');
+
+            if (!input.files.length) {
+                status.textContent = 'Önce HLS dosyalarını seçin.';
+                status.style.color = '#ff6b6b';
+                return;
+            }
+
+            var hasM3U8 = Array.from(input.files).some(function(file) {
+                return file.name.toLowerCase().endsWith('.m3u8');
+            });
+
+            if (!hasM3U8) {
+                status.textContent = '.m3u8 dosyası seçilmelidir.';
+                status.style.color = '#ff6b6b';
+                return;
+            }
+
+            var formData = new FormData();
+
+            Array.from(input.files).forEach(function(file) {
+                formData.append('files', file);
+            });
+
+            if (nameInput.value.trim()) {
+                formData.append('name', nameInput.value.trim());
+            }
+
+            status.textContent = 'HLS dosyaları yükleniyor...';
+            status.style.color = '#00ecff';
+
+            try {
+                var response = await fetch('/api/hls/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                var data = await response.json();
+
+                if (!response.ok || !data.ok) {
+                    throw new Error(data.error || 'HLS yükleme başarısız');
+                }
+
+                status.textContent = 'HLS yayını başarıyla eklendi.';
+                status.style.color = '#00ff88';
+
+                input.value = '';
+
+                if (data.kamera && data.eklendi) {
+                    kameralarVerisi.push(data.kamera);
+                }
+
+                kameraListesiniDoldur();
+
+            } catch (error) {
+                console.error('HLS YÜKLEME HATASI:', error);
+                status.textContent = error.message || 'HLS yükleme başarısız.';
+                status.style.color = '#ff6b6b';
+            }
         }
 
         function canliTahminGetir() {
@@ -515,9 +733,34 @@ function toggleMod() {
         }
 
         var havaDurumuKatmani = L.layerGroup().addTo(map);
-        function canlıYayınAc(url, isim) {
+        let aktifHls = null;
+
+        function canlıYayınAc(url, isim, type) {
             document.getElementById('cam-title').innerText = "🎥 " + isim;
-            document.getElementById('cam-frame').src = url;
+
+            let iframe = document.getElementById('cam-frame');
+            let video = document.getElementById('hls-frame');
+
+            if (aktifHls) {
+                aktifHls.destroy();
+                aktifHls = null;
+            }
+
+            iframe.src = '';
+            iframe.style.display = 'none';
+
+            video.pause();
+            video.removeAttribute('src');
+            video.load();
+            video.style.display = 'none';
+
+            if (type === 'hls' || url.toLowerCase().includes('.m3u8')) {
+                video.style.display = 'block';
+                hlsOynat(url);
+            } else {
+                iframe.style.display = 'block';
+                iframe.src = url;
+            }
 
             let cam=document.getElementById('cam-container');
             cam.style.display='flex';
@@ -527,11 +770,59 @@ function toggleMod() {
             if(kp) kp.style.display='none';
         }
 
+        function hlsOynat(url) {
+            let video = document.getElementById('hls-frame');
+
+            if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = url;
+                video.play().catch(() => {});
+                return;
+            }
+
+            if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+                aktifHls = new Hls({
+                    enableWorker: true,
+                    lowLatencyMode: true
+                });
+
+                aktifHls.loadSource(url);
+                aktifHls.attachMedia(video);
+
+                aktifHls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    video.play().catch(() => {});
+                });
+
+                aktifHls.on(Hls.Events.ERROR, function(event, data) {
+                    console.error('HLS HATA:', data);
+                });
+
+                return;
+            }
+
+            alert('Bu tarayıcı HLS oynatmayı desteklemiyor.');
+        }
+
         function kameraKapat() {
             document.getElementById('cam-container').style.display = 'none';
+
             let kp=document.getElementById('kutlePanel');
             if(kp) kp.style.display='block';
-            document.getElementById('cam-frame').src = '';
+
+            let iframe = document.getElementById('cam-frame');
+            let video = document.getElementById('hls-frame');
+
+            iframe.src = '';
+            video.pause();
+            video.removeAttribute('src');
+            video.load();
+
+            if (aktifHls) {
+                aktifHls.destroy();
+                aktifHls = null;
+            }
+
+            iframe.style.display = 'block';
+            video.style.display = 'none';
         }
 
         function havaDurumuArayuzunuGuncelle() {
@@ -718,11 +1009,7 @@ panel.style.display="none";
 
 
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-<script>
-function hlsOynat(url){
-    console.log("HLS:", url);
-}
-</script>
+
 
 
 
@@ -822,8 +1109,8 @@ p.style.display="none";
 
 }
 
-setInterval(otomatikFirtinaKontrol,60000);
-window.addEventListener("load",otomatikFirtinaKontrol);
+// Otomatik fırtına popup kontrolü devre dışı.
+// Fırtına bilgisi yalnızca 🌪️ FIRTINA butonuyla manuel açılır.
 
 </script>
 

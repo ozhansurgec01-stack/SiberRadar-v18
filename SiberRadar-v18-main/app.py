@@ -1,9 +1,11 @@
+import json
+from pathlib import Path
 from datetime import datetime, timedelta
 import time
 weather_cache = []
 weather_cache_time = 0
 
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, send_from_directory
 from datetime import datetime, timedelta
 import requests
 
@@ -53,6 +55,99 @@ def home():
     except:
         kameralar=[]
     return render_template('index.html', kameralar=kameralar)
+
+
+
+HLS_DIR = "static/hls"
+HLS_ALLOWED = {".m3u8", ".ts", ".m4s", ".mp4", ".aac", ".vtt", ".key"}
+
+@app.route('/hls/<path:filename>')
+def hls_file(filename):
+    return send_from_directory(HLS_DIR, filename)
+
+@app.route('/api/hls/upload', methods=['POST'])
+def hls_upload():
+    try:
+        files = request.files.getlist("files")
+
+        if not files:
+            return jsonify({"ok": False, "error": "Dosya gönderilmedi"}), 400
+
+        import os
+        os.makedirs(HLS_DIR, exist_ok=True)
+
+        yuklenen = []
+        m3u8 = None
+
+        for file in files:
+            if not file or not file.filename:
+                continue
+
+            from werkzeug.utils import secure_filename
+
+            filename = secure_filename(file.filename)
+            ext = os.path.splitext(filename)[1].lower()
+
+            if ext not in HLS_ALLOWED:
+                continue
+
+            file.save(os.path.join(HLS_DIR, filename))
+            yuklenen.append(filename)
+
+            if ext == ".m3u8":
+                m3u8 = filename
+
+        if not yuklenen:
+            return jsonify({
+                "ok": False,
+                "error": "Geçerli HLS dosyası bulunamadı"
+            }), 400
+
+        if not m3u8:
+            return jsonify({
+                "ok": False,
+                "error": "HLS oynatımı için .m3u8 dosyası gerekli"
+            }), 400
+
+        import json
+
+        kamera_adi = request.form.get("name", "").strip() or Path(m3u8).stem
+
+        kamera = [kamera_adi, 0, 0, "/hls/" + m3u8, "hls"]
+
+        kamera_dosyasi = "kameralar.json"
+
+        try:
+            with open(kamera_dosyasi, "r", encoding="utf-8") as f:
+                kameralar = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            kameralar = []
+
+        ayni_url = any(
+            isinstance(x, list) and len(x) >= 4 and x[3] == kamera[3]
+            for x in kameralar
+        )
+
+        if not ayni_url:
+            kameralar.append(kamera)
+
+            with open(kamera_dosyasi, "w", encoding="utf-8") as f:
+                json.dump(kameralar, f, ensure_ascii=False, indent=2)
+
+        return jsonify({
+            "ok": True,
+            "files": yuklenen,
+            "m3u8": m3u8,
+            "url": "/hls/" + m3u8,
+            "kamera": kamera,
+            "eklendi": not ayni_url
+        })
+
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        }), 500
 
 
 @app.route('/api/cameras')
@@ -683,6 +778,118 @@ def api_alerts():
         })
 
 
+
+
+@app.route('/sil_kamera', methods=['POST'])
+def sil_kamera():
+    req_data = request.get_json(silent=True) or {}
+    kamera_adi = str(req_data.get('name', '')).strip()
+
+    if not kamera_adi:
+        return jsonify({
+            "ok": False,
+            "error": "Kamera adı boş"
+        }), 400
+
+    json_path = Path('kameralar.json')
+
+    if not json_path.exists():
+        return jsonify({
+            "ok": False,
+            "error": "kameralar.json bulunamadı"
+        }), 404
+
+    with open(json_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    yeni_data = []
+    silindi = False
+
+    for item in data:
+        if (
+            isinstance(item, list)
+            and len(item) >= 1
+            and str(item[0]).strip() == kamera_adi
+        ):
+            silindi = True
+            continue
+
+        yeni_data.append(item)
+
+    if not silindi:
+        return jsonify({
+            "ok": False,
+            "error": "Kamera bulunamadı"
+        }), 404
+
+    with open(json_path, 'w', encoding='utf-8') as f:
+        json.dump(yeni_data, f, indent=2, ensure_ascii=False)
+
+    return jsonify({
+        "ok": True,
+        "silindi": True,
+        "name": kamera_adi
+    })
+
+
+@app.route('/ekle_kamera', methods=['POST'])
+def ekle_kamera():
+    req_data = request.get_json(silent=True) or {}
+
+    isim = str(req_data.get('name', '')).strip()
+    link = str(req_data.get('link', '')).strip()
+    tip = str(req_data.get('type', 'normal')).strip().lower()
+
+    if not isim or not link:
+        return jsonify({
+            "ok": False,
+            "error": "Kamera adı ve yayın URL'si zorunludur"
+        }), 400
+
+    if tip not in ('normal', 'yt', 'hls'):
+        return jsonify({
+            "ok": False,
+            "error": "Geçersiz kamera türü"
+        }), 400
+
+    try:
+        lat = float(req_data.get('lat', 0))
+        lng = float(req_data.get('lng', 0))
+    except (TypeError, ValueError):
+        return jsonify({
+            "ok": False,
+            "error": "Enlem ve boylam sayı olmalıdır"
+        }), 400
+
+    json_path = Path('kameralar.json')
+
+    if json_path.exists():
+        with open(json_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    else:
+        data = []
+
+    for item in data:
+        if (
+            isinstance(item, list)
+            and len(item) >= 4
+            and str(item[0]).strip() == isim
+        ):
+            return jsonify({
+                "ok": False,
+                "error": "Bu isimde bir kamera zaten var"
+            }), 409
+
+    kamera = [isim, lat, lng, link, tip]
+    data.append(kamera)
+
+    with open(json_path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+    return jsonify({
+        "ok": True,
+        "kamera": kamera
+    })
 
 
 if __name__ == "__main__":
